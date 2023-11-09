@@ -922,7 +922,8 @@ MonoBehaviour:
   walkSpeed: 5
   runSpeed: 8
   rotateSpeed: 10
-  moveSpeed: 0
+  dashRange: 5
+  dashCol: 10
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
