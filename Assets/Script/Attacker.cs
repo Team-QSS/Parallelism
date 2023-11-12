@@ -10,23 +10,21 @@ using Random = UnityEngine.Random;
 
 public class Attacker : MonoBehaviour
 {
-    [SerializeField] private Transform attackerAnchor;
-    public                   Transform swordAnchor;
+    [FormerlySerializedAs("attackerAnchor")] [SerializeField] private Transform moverTransform;
 
     [Header("Camera")] [SerializeField] private Vector2                 mouseSensitivity;
     private                                     CinemachineCameraOffset cineOffset;
-
-    private float   MouseSensitivityRatio => currentSword && currentSword.IsAction ? .1f : 1f;
-    private Vector2 MouseSensitivity      => mouseSensitivity * MouseSensitivityRatio;
+    private                                     Vector3                 originOffset;
 
     [Header("Sword")] [SerializeField] private int swordCount;
 
-    private static readonly List<Sword> Swords = new List<Sword>();
+    private static readonly List<Sword> Swords = new ();
     private                 Sword       currentSword;
 
     private void Awake()
     {
-        cineOffset = GetComponentInChildren<CinemachineCameraOffset>();
+        cineOffset   = GetComponentInChildren<CinemachineCameraOffset>();
+        originOffset = cineOffset.m_Offset;
 
         var swordPrefab = Resources.Load<Sword>("Sword");
         for (int i = 0; i < swordCount; i++)
@@ -47,66 +45,21 @@ public class Attacker : MonoBehaviour
     {
         float smoothDelta = Time.smoothDeltaTime;
 
-        CameraTrace(smoothDelta);
+        MoverTrace(smoothDelta);
         CameraRotate(smoothDelta);
-
+        
         if (currentSword)
         {
-            if (!currentSword.IsInside)
-            {
-                swordAnchor.position = attackerAnchor.position;
-            }
+            currentSword.Attack();
+            currentSword.Throw();
 
-            if (!currentSword.IsAction)
-            {
-                AttackInput();
-                ThrowInput();
-            }
-            
             if (!currentSword.gameObject.activeSelf)
             {
-                Select(Swords.FindIndex(e => e.IsInside));
+                Select(Swords.FindIndex(e => e.IsStuck));
             }
         }
-        if (!currentSword || !currentSword.IsAction)
-        {
-            SelectInput();
-        }
-
-        Test();
-    }
-
-    private void Test()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            Time.timeScale = Time.timeScale - 1 != 0 ? 1f : 0.1f;
-        }
-    }
-
-    private void AttackInput()
-    {
-        if (Input.GetMouseButtonDown(0) && !currentSword.IsAction)
-        {
-            currentSword.Attack();
-        }
-    }
-
-    private void ThrowInput()
-    {
-        if (Input.GetMouseButtonDown(1))
-        {
-            if (currentSword.IsInside)
-            {
-                currentSword.Throw();
-                SetInnerSword();
-                StartCoroutine(Wait(() => !currentSword.IsAction, () => { Select(Swords.FindIndex(e => e.IsInside)); }));
-            }
-            else if (currentSword.Throw())
-            {
-                
-            }
-        }
+        
+        SelectInput();
     }
 
     private void SelectInput()
@@ -122,41 +75,37 @@ public class Attacker : MonoBehaviour
 
     public void Hit()
     {
-        
     }
 
     private void Select(int index)
     {
+        if (currentSword)
+        {
+            if (Swords.FindIndex(e => e == currentSword) == index) return;
+            currentSword.Setting(false);
+        }
         if (index == -1)
         {
             currentSword = null;
             return;
         }
 
+        
         currentSword = Swords[index];
-        if (currentSword.IsInside)
+        currentSword.Setting(true);
+        if (currentSword.IsStuck)
         {
             SetInnerSword();
-            swordAnchor.parent        = transform;
-            swordAnchor.localPosition = default;
-            swordAnchor.rotation      = default;
         }
-        else
-        {
-            swordAnchor.parent   = null;
-            swordAnchor.rotation = Quaternion.Euler(0, swordAnchor.eulerAngles.y, 0);
-        }
-
-        CameraSetting();
     }
 
-    private void SetInnerSword()
+    public void SetInnerSword()
     {
-        var       selected     = currentSword && currentSword.IsInside ? Swords.FindIndex(e => e == currentSword) : 0;
+        var       selected     = currentSword && currentSword.IsStuck ? Swords.FindIndex(e => e == currentSword) : 0;
         List<int> innerIndexes = new List<int>();
         foreach (var sword in Swords)
         {
-            if (sword.IsInside)
+            if (sword.IsStuck)
             {
                 innerIndexes.Add(Swords.FindIndex(e => e == sword));
             }
@@ -176,69 +125,26 @@ public class Attacker : MonoBehaviour
         }
     }
 
-    public void RespawnSword(Sword sword)
-    {
-        StartCoroutine(Delay(sword));
-    }
-
-    IEnumerator Delay(Sword sword)
-    {
-        float respawnTime = 3f;
-        yield return new WaitForSeconds(respawnTime);
-        sword.gameObject.SetActive(true);
-        if (currentSword)
-        {
-            SetInnerSword();
-        }
-        else
-        {
-            Select(Swords.FindIndex(e => e == sword));
-        }
-    }
-
     #region Camera
 
-    private void CameraSetting()
+    private void MoverTrace(float delta)
     {
-        if (currentSword && !currentSword.IsInside)
-        {
-            cineOffset.m_Offset = new Vector3(0, 0, -Swords[0].innerDistance) + -Swords[0].innerOffset;
-        }
-        else
-        {
-            cineOffset.m_Offset = default;
-        }
-    }
-
-    private void CameraTrace(float delta)
-    {
-        var targetPosition = attackerAnchor.position;
-        if (currentSword && !currentSword.IsInside)
-        {
-            targetPosition = currentSword.transform.position;
-        }
-
+        var targetPosition = moverTransform.position;
         transform.position = Vector3.Lerp(transform.position, targetPosition, 10 * delta);
     }
 
     private void CameraRotate(float delta)
     {
-        var x           = -Input.GetAxis("Mouse Y") * MouseSensitivity.y * delta;
-        var y           = Input.GetAxis("Mouse X") * MouseSensitivity.x * delta;
+        var x           = -Input.GetAxis("Mouse Y") * mouseSensitivity.y * delta;
+        var y           = Input.GetAxis("Mouse X") * mouseSensitivity.x * delta;
         var transform1  = transform;
         var eulerAngles = transform1.eulerAngles;
         x += eulerAngles.x;
         y += eulerAngles.y;
-        if (x is > 50 and < 310)
-            x = x > 180 ? 310 : 50;
+        if (x is > 65 and < 295)
+            x = x > 180 ? 295 : 65;
         transform.rotation = Quaternion.Euler(x, y, 0);
     }
 
     #endregion
-
-    IEnumerator Wait(Func<bool> condition, Action endAction)
-    {
-        yield return new WaitUntil(condition);
-        endAction();
-    }
 }
