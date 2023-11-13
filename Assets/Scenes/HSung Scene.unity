@@ -290,7 +290,7 @@ Camera:
     height: 1
   near clip plane: 0.1
   far clip plane: 5000
-  field of view: 60.000004
+  field of view: 60
   orthographic: 0
   orthographic size: 10
   m_Depth: -1
@@ -605,7 +605,7 @@ MonoBehaviour:
   m_LookAt: {fileID: 342682152}
   m_Follow: {fileID: 1247019456}
   m_Lens:
-    FieldOfView: 60.000004
+    FieldOfView: 60
     OrthographicSize: 10
     NearClipPlane: 0.1
     FarClipPlane: 5000
@@ -817,7 +817,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moverTransform: {fileID: 1471824740}
   mouseSensitivity: {x: 400, y: 250}
-  swordCount: 3
+  swordCount: 2
 --- !u!4 &1247019456
 Transform:
   m_ObjectHideFlags: 0

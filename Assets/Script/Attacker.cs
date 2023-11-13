@@ -52,6 +52,8 @@ public class Attacker : MonoBehaviour
         {
             currentSword.Attack();
             currentSword.Throw();
+            currentSword.Return();
+            currentSword.Skill();
 
             if (!currentSword.gameObject.activeSelf)
             {

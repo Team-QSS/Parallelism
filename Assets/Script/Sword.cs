@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Cinemachine;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
@@ -13,8 +14,10 @@ public class Sword : MonoBehaviour
     private                  BoxCollider     boxCollider;
     private                  Animator        anim;
     private static readonly  int             AttackTrigger = Animator.StringToHash("Attack");
+    private static readonly  int             SkillTrigger  = Animator.StringToHash("Skill");
     private static readonly  int             ThrowBool     = Animator.StringToHash("Throw");
     [SerializeField] private ComboAnimInfo[] infos;
+
 
     [Serializable]
     public class ComboAnimInfo
@@ -28,16 +31,17 @@ public class Sword : MonoBehaviour
 
     [NonSerialized] public readonly float innerDistance = 2f;
 
-    private bool isAttack;
-    private bool isThrow;
-    public  bool IsStuck { get; private set; } = true;
+    private                         bool  isAttack;
+    private                         bool  isThrow;
+    private                         bool  isSkill;
+    public                          bool  IsStuck { get; private set; } = true;
 
-    private int index;
-    private int length;
+    private                 int  index;
+    private                 int  length;
 
-    private float damage = 40;
+    private                 float damage       = 40;
 
-    private bool attackTrigger;
+    private                 bool  attackTrigger;
 
     [SerializeField] private LayerMask throwBlockLayer;
     [SerializeField] private float     minThrowDistance = 3f;
@@ -45,9 +49,10 @@ public class Sword : MonoBehaviour
     [SerializeField] private float     scrollSpeed      = 100f;
     private                  float     throwDistance;
 
-    private Coroutine throwCoroutine;
+    private                  Coroutine throwCoroutine;
 
     [SerializeField] private GameObject testAnchor;
+    [SerializeField] private Transform  camTr;
 
     private void Awake()
     {
@@ -55,6 +60,11 @@ public class Sword : MonoBehaviour
         boxCollider = GetComponentInChildren<BoxCollider>();
 
         testAnchor.transform.parent = null;
+    }
+
+    private void Start()
+    {
+        camTr  = Camera.main.transform;
     }
 
     private void OnEnable()
@@ -82,6 +92,8 @@ public class Sword : MonoBehaviour
     {
         if (enter)
         {
+            throwDistance = minThrowDistance;
+            testAnchor.SetActive(true);
         }
         else
         {
@@ -117,7 +129,7 @@ public class Sword : MonoBehaviour
 
     public void Attack()
     {
-        if (Input.GetMouseButtonDown(0) && !isThrow)
+        if (Input.GetMouseButtonDown(0) && !isThrow && !isSkill)
         {
             if (isAttack)
             {
@@ -136,35 +148,42 @@ public class Sword : MonoBehaviour
         throwDistance =
             Mathf.Clamp(throwDistance + Input.GetAxis("Mouse ScrollWheel") * Time.smoothDeltaTime * scrollSpeed,
                         minThrowDistance, maxThrowDistance);
-        if (testAnchor.activeSelf ^ throwDistance > minThrowDistance)
+
+        if (Physics.Raycast(camTr.position, camTr.forward, out var hit,
+                            throwDistance, throwBlockLayer))
         {
-            testAnchor.SetActive(throwDistance > minThrowDistance);
+            testAnchor.transform.position = hit.point;
+        }
+        else
+        {
+            testAnchor.transform.position =
+                camTr.forward * throwDistance + camTr.position;
         }
 
-        if (throwDistance > minThrowDistance)
+        if (Input.GetMouseButtonDown(1) && !isThrow && !isAttack && !isSkill)
         {
-            if (Physics.Raycast(attacker.transform.position, attacker.transform.forward, out RaycastHit hit,
-                                throwDistance, throwBlockLayer))
-            {
-                testAnchor.transform.position = hit.point;
-            }
-            else
-            {
-                testAnchor.transform.position =
-                    attacker.transform.forward * throwDistance + attacker.transform.position;
-            }
+            SetStuck(false);
+            throwCoroutine =
+                StartCoroutine(ThrowSequence(testAnchor.transform.position,
+                                             Quaternion.LookRotation(
+                                                 testAnchor.transform.position - transform.position)));
+        }
+    }
 
-            if (!isThrow)
-            {
-                if (Input.GetMouseButtonDown(1))
-                {
-                    SetStuck(false);
-                    throwCoroutine =
-                        StartCoroutine(ThrowSequence(testAnchor.transform.position,
-                                                     Quaternion.LookRotation(
-                                                         testAnchor.transform.position - transform.position)));
-                }
-            }
+    public void Return()
+    {
+        if (Input.GetKeyDown(KeyCode.R) && !isThrow && !isAttack && !isSkill && !IsStuck)
+        {
+            SetStuck(true);
+        }
+    }
+
+    public void Skill()
+    {
+        if (Input.GetKeyDown(KeyCode.Space) && !isAttack && !isThrow && !isSkill)
+        {
+            SetStuck(false);
+            StartCoroutine(SkillSequence());
         }
     }
 
@@ -172,7 +191,6 @@ public class Sword : MonoBehaviour
     {
         isAttack = true;
         anim.SetTrigger(AttackTrigger);
-        var attackInfos = {A is float}
         float animTime       = infos[i].t;
         float startTime      = infos[i].sT;
         float endTime        = infos[i].eT;
@@ -203,7 +221,7 @@ public class Sword : MonoBehaviour
     {
         float speed       = 30f;
         float rotateSpeed = 360f;
-        StartCoroutine(Utill.Execute(quar => transform.rotation = quar, transform.rotation, targetRotation,
+        StartCoroutine(Utill.Execute(quat => transform.rotation = quat, transform.rotation, targetRotation,
                                      Quaternion.Angle(transform.rotation, targetRotation) / rotateSpeed));
 
         isThrow = true;
@@ -222,6 +240,23 @@ public class Sword : MonoBehaviour
 
         anim.SetBool(ThrowBool, false);
         StartCoroutine(Utill.Execute(.1f, () => isThrow = false));
+    }
+
+    private IEnumerator SkillSequence()
+    {
+        isSkill = true;
+        float rotateSpeed = 360f;
+        
+        StartCoroutine(Utill.Execute(quat => transform.rotation = quat, transform.rotation, Quaternion.Euler(Vector3.up * transform.eulerAngles.y),
+                                     Quaternion.Angle(transform.rotation, Quaternion.Euler(Vector3.up * transform.eulerAngles.y)) / rotateSpeed));
+        anim.SetTrigger(SkillTrigger);
+        float animTime     = 1.05f;
+        float attackTiming = .46f * animTime;
+        yield return new WaitForSeconds(attackTiming);
+        boxCollider.enabled = true;
+        yield return new WaitForSeconds(animTime - attackTiming + .1f);
+        boxCollider.enabled = false;
+        isSkill             = false;
     }
 
     private void OnTriggerEnter(Collider other)
