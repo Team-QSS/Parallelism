@@ -59,15 +59,14 @@ public class LocalLobby
 
     public CallbackValue<long> LastUpdated = new();
 
-    public int PlayerCount => m_LocalPlayers.Count;
-    ServerAddress m_RelayServer;
+    public int PlayerCount => LocalPlayers.Count;
+    private ServerAddress m_RelayServer;
 
-    public List<LocalPlayer> LocalPlayers => m_LocalPlayers;
-    List<LocalPlayer> m_LocalPlayers = new();
+    public List<LocalPlayer> LocalPlayers { get; } = new();
 
     public void ResetLobby()
     {
-        m_LocalPlayers.Clear();
+        LocalPlayers.Clear();
 
         LobbyName.Value = "";
         LobbyID.Value = "";
@@ -94,12 +93,12 @@ public class LocalLobby
 
     public LocalPlayer GetLocalPlayer(int index)
     {
-        return PlayerCount > index ? m_LocalPlayers[index] : null;
+        return PlayerCount > index ? LocalPlayers[index] : null;
     }
 
     private void OnHostChanged(string newHostId)
     {
-        foreach(var player in m_LocalPlayers)
+        foreach(var player in LocalPlayers)
         {
             player.IsHost.Value = player.ID.Value == newHostId;
         }
@@ -107,7 +106,7 @@ public class LocalLobby
     
     public void AddPlayer(int index, LocalPlayer user)
     {
-        m_LocalPlayers.Insert(index, user);
+        LocalPlayers.Insert(index, user);
         user.UserStatus.onChanged += OnUserChangedStatus;
         onUserJoined?.Invoke(user);
         Debug.Log($"Added User: {user.DisplayName.Value} - {user.ID.Value} to slot {index + 1}/{PlayerCount}");
@@ -115,15 +114,15 @@ public class LocalLobby
 
     public void RemovePlayer(int playerIndex)
     {
-        m_LocalPlayers[playerIndex].UserStatus.onChanged -= OnUserChangedStatus;
-        m_LocalPlayers.RemoveAt(playerIndex);
+        LocalPlayers[playerIndex].UserStatus.onChanged -= OnUserChangedStatus;
+        LocalPlayers.RemoveAt(playerIndex);
         onUserLeft?.Invoke(playerIndex);
     }
 
     void OnUserChangedStatus(PlayerStatus status)
     {
         int readyCount = 0;
-        foreach (var player in m_LocalPlayers)
+        foreach (var player in LocalPlayers)
         {
             if (player.UserStatus.Value == PlayerStatus.Ready)
                 readyCount++;

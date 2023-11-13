@@ -1,13 +1,7 @@
-using TMPro;
 using UnityEngine;
 
 public class LobbyPlayer : MonoBehaviour
 {
-    [SerializeField] private TextMeshPro _playerName;
-    [SerializeField] private Renderer _isReadyRenderer;
-
-    private MaterialPropertyBlock _propertyBlock;
-
     // public void SetData(data)
     // {
     //     _data = data;

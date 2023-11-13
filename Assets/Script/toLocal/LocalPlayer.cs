@@ -18,7 +18,7 @@ public class LocalPlayer
 {
     public CallbackValue<bool> IsHost = new(false);
     public CallbackValue<string> DisplayName = new("");
-    public CallbackValue<PlayerStatus> UserStatus = new((PlayerStatus)0);
+    public CallbackValue<PlayerStatus> UserStatus = new(0);
     public CallbackValue<string> ID = new("");
     public CallbackValue<int> Index = new(0);
 
