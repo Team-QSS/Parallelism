@@ -13,8 +13,6 @@ public class Attacker : MonoBehaviour
     [FormerlySerializedAs("attackerAnchor")] [SerializeField] private Transform moverTransform;
 
     [Header("Camera")] [SerializeField] private Vector2                 mouseSensitivity;
-    private                                     CinemachineCameraOffset cineOffset;
-    private                                     Vector3                 originOffset;
 
     [Header("Sword")] [SerializeField] private int swordCount;
 
@@ -23,9 +21,6 @@ public class Attacker : MonoBehaviour
 
     private void Awake()
     {
-        cineOffset   = GetComponentInChildren<CinemachineCameraOffset>();
-        originOffset = cineOffset.m_Offset;
-
         var swordPrefab = Resources.Load<Sword>("Sword");
         for (int i = 0; i < swordCount; i++)
         {
