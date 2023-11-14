@@ -54,18 +54,8 @@ public class PlayerMove : MonoBehaviour
 
     private void Dash()
     {
-        if (dashCol > currentTime) return;
-        // playerRigid.velocity = transform.forward * dashRange;
-        Debug.DrawRay(transform.position, transform.forward * dashRange, Color.green, 1f);
-        if (Physics.Raycast(transform.position, transform.forward * dashRange, out hit, dashRange))
-        {
-            dashPoint = hit.point * .5f;
-        }
-        else
-        {
-            dashPoint = (transform.position + transform.forward.normalized * dashRange) * .5f;
-        }
-        transform.Translate(transform.position + dashPoint);
+        if (dashCol > currentTime) return; 
+        playerRigid.velocity = transform.forward * dashRange;
         currentTime = 0f;
     }
 
