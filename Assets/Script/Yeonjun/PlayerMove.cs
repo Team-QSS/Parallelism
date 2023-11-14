@@ -15,19 +15,22 @@ public class PlayerMove : MonoBehaviour
     private float currentTime;
 
     private bool isRun;
+    private bool isMove;
     
     private float horizontalMove, verticalMove;
     private Quaternion lookDir;
-    private Vector3 moveDir, dashPoint;
+    public Vector3 moveDir;
+    private Vector3 dashPoint;
 
     private RaycastHit hit;
     
     private Rigidbody playerRigid;
+    private Animator animator;
 
-    //TODO : 대쉬 기능 구현 [쿨타임 포함]
     private void Start()
     {
         playerRigid = GetComponent<Rigidbody>();
+        animator = GetComponent<Animator>();
         currentTime = dashCol;
     }
 
@@ -55,6 +58,7 @@ public class PlayerMove : MonoBehaviour
     private void Dash()
     {
         if (dashCol > currentTime) return; 
+        animator.SetTrigger("Dash");
         playerRigid.velocity = transform.forward * dashRange;
         currentTime = 0f;
     }
@@ -63,6 +67,10 @@ public class PlayerMove : MonoBehaviour
     {
         moveSpeed = isRun ? runSpeed : walkSpeed;
         moveDir = new Vector3(horizontalMove, 0f, verticalMove).normalized;
+        
+        animator.SetBool("isMove", moveDir != new Vector3(0f, 0f, 0f));
+        animator.SetBool("isRun", isRun);
+        
         playerRigid.MovePosition(transform.position + moveDir * (moveSpeed * Time.fixedDeltaTime));
     }
     
