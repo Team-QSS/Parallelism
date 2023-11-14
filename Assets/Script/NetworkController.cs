@@ -21,7 +21,6 @@ public class NetworkController : MonoBehaviour
 
     private const string key_RelayCode = nameof(LocalLobby.RelayCode);
     private const string key_LobbyState = nameof(LocalLobby.LocalLobbyState);
-    private const string key_LobbyColor = nameof(LocalLobby.LocalLobbyColor);
 
     private const string key_Displayname = nameof(LocalPlayer.DisplayName);
     private const string key_Userstatus = nameof(LocalPlayer.UserStatus);
@@ -67,45 +66,54 @@ public class NetworkController : MonoBehaviour
 
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
         }
+        
+        StartHeartBeat();
+        GetLobby();
     }
 
+    private async void StartHeartBeat()
+    {
+        while (m_CurrentLobby != null)
+        {
+            await HandleLobbyHeartbeat();
+            await Task.Delay(8000);
+        }
+    }
+
+    private async void GetLobby()
+    {
+        while (m_CurrentLobby != null)
+        {
+            await HandleLobbyPollForUpdates();
+        }
+    }
+    
     private bool IsLobbyHost()
     {
         return m_LocalLobby.LobbyName.Value != null && m_LocalLobby.HostID.Value == AuthenticationService.Instance.PlayerId;
     }
 
-    private void Update()
+    private async Task HandleLobbyHeartbeat()
     {
-        HandleLobbyHeartbeat();
-        HandleLobbyPollForUpdates();
+        if (!IsLobbyHost())
+        {
+            return;
+        }
+        if (m_HeartBeatCooldown.IsCoolingDown)
+        {
+            return;
+        }
+        await m_HeartBeatCooldown.QueueUntilCooldown();
+        
+        await LobbyService.Instance.SendHeartbeatPingAsync(m_CurrentLobby.Id);
     }
 
-    private async void HandleLobbyHeartbeat()
+    private async Task HandleLobbyPollForUpdates()
     {
-        if (IsLobbyHost())
-        {
-            heartbeatTimer -= Time.deltaTime;
-            if (heartbeatTimer <= 0f)
-            {
-                const float heartbeatTimerMax = 15f;
-                heartbeatTimer = heartbeatTimerMax;
-                await LobbyService.Instance.SendHeartbeatPingAsync(m_LocalLobby.LobbyID.Value);
-            }
-        }
-    }
-
-    private async void HandleLobbyPollForUpdates()
-    {
-        if (m_LocalUser.UserStatus.Value == PlayerStatus.None) return;
-        lobbyUpdateTimer -= Time.deltaTime;
-        if (lobbyUpdateTimer < 0f)
-        {
-            const float lobbyUpdateTimerMax = 1.1f;
-            lobbyUpdateTimer = lobbyUpdateTimerMax;
-
-            m_CurrentLobby = await LobbyService.Instance.GetLobbyAsync(m_LocalLobby.LobbyID.Value);
-            
-        }
+        if (m_CurrentLobby == null)
+            return;
+        await m_GetLobbyCooldown.QueueUntilCooldown();
+        m_CurrentLobby = await LobbyService.Instance.GetLobbyAsync(m_CurrentLobby.Id);
     }
 
     private async Task<string> GetRelayJoinCode(Allocation allocation)
@@ -174,6 +182,8 @@ public class NetworkController : MonoBehaviour
             LobbyConverters.RemoteToLocal(m_CurrentLobby, m_LocalLobby);
             m_LocalUser.IsHost.Value = true;
             await BindLobby();
+            StartHeartBeat();
+            GetLobby();
             Debug.Log("create " + m_LocalLobby.LobbyName.Value + " " + m_LocalLobby.MaxPlayerCount.Value + " " + m_LocalLobby.LobbyID.Value + " " +
                       m_LocalLobby.LobbyCode.Value);
         }
@@ -197,16 +207,6 @@ public class NetworkController : MonoBehaviour
 
             return default;
         }
-    }
-
-    private async void SendLocalLobbyData()
-    {
-        await UpdateLobbyDataAsync(LobbyConverters.LocalToRemoteLobbyData(m_LocalLobby));
-    }
-
-    private async void SendLocalUserData()
-    {
-        await UpdatePlayerDataAsync(LobbyConverters.LocalToRemoteUserData(m_LocalUser));
     }
     
     public async Task UpdateLobbyDataAsync(Dictionary<string, string> data)
@@ -300,7 +300,7 @@ public class NetworkController : MonoBehaviour
             LobbyConverters.RemoteToLocal(m_CurrentLobby, m_LocalLobby);
             m_LocalUser.IsHost.ForceSet(false);
             await BindLobby();
-            
+            GetLobby();
             Debug.Log("quick join " + m_CurrentLobby);
             
         }
@@ -375,7 +375,7 @@ public class NetworkController : MonoBehaviour
             LobbyConverters.RemoteToLocal(m_CurrentLobby, m_LocalLobby);
             m_LocalUser.IsHost.ForceSet(false);
             await BindLobby();
-            
+            GetLobby();
             Debug.Log("join w code " + lobbyCode);
         }
         catch (LobbyServiceException e)
@@ -442,14 +442,13 @@ public class NetworkController : MonoBehaviour
     }
 
     [Command]
-    private void PrintLocal()
+    private void PrintLocalLobby()
     {
         var l = m_LocalLobby;
         Debug.Log(l.LobbyName.Value);
         Debug.Log(l.LobbyID.Value);
         Debug.Log(l.LobbyCode.Value);
         Debug.Log(l.LocalLobbyState.Value);
-        Debug.Log(l.LocalLobbyColor.Value);
         Debug.Log(l.RelayCode.Value);
         Debug.Log(l.AvailableSlots.Value);
         Debug.Log(l.LocalPlayers); 
@@ -476,6 +475,8 @@ public class NetworkController : MonoBehaviour
     {
         if (m_CurrentLobby == null) return;
         await UpdatePlayerDataAsync(new Dictionary<string, string> { { key_Userstatus, ready ? ((int)PlayerStatus.Ready).ToString() : ((int)PlayerStatus.Lobby).ToString()} }) ;
+        LobbyConverters.RemoteToLocal(m_CurrentLobby, m_LocalLobby);
+        
     }
     
     public async Task BindLocalLobbyToRemote(string lobbyID, LocalLobby localLobby)
@@ -497,9 +498,6 @@ public class NetworkController : MonoBehaviour
                         case key_LobbyState:
                             localLobby.LocalLobbyState.Value = (LobbyState)int.Parse(changedValue.Value.Value);
                             break;
-                        case key_LobbyColor:
-                            localLobby.LocalLobbyColor.Value = (LobbyColor)int.Parse(changedValue.Value.Value);
-                            break;
                     }
                 }
             };
@@ -515,9 +513,6 @@ public class NetworkController : MonoBehaviour
                             break;
                         case key_LobbyState:
                             localLobby.LocalLobbyState.Value = (LobbyState)int.Parse(changedValue.Value.Value);
-                            break;
-                        case key_LobbyColor:
-                            localLobby.LocalLobbyColor.Value = (LobbyColor)int.Parse(changedValue.Value.Value);
                             break;
                     }
                 }
@@ -551,9 +546,9 @@ public class NetworkController : MonoBehaviour
                     var index = playerChanges.PlayerIndex;
                     var isHost = localLobby.HostID.Value == id;
 
-                    var newPlayer = new LocalPlayer(id, index, isHost);
+                    var newPlayer = new LocalPlayer(id, index, isHost,status:PlayerStatus.Lobby);
                     
-                    Debug.Log("data " + joinedPlayer.Data[key_Displayname].Value);
+                    Debug.Log("joined player " + joinedPlayer.Data[key_Displayname].Value);
                     
                     foreach (var (key, dataObject) in joinedPlayer.Data)
                     {

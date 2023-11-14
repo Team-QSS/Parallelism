@@ -12,13 +12,6 @@ public enum LobbyState
     InGame = 4
 }
 
-public enum LobbyColor
-{
-    None = 0,
-    Orange = 1,
-    Green = 2,
-    Blue = 3
-}
 
 /// <summary>
 /// A local wrapper around a lobby's remote data, with additional functionality for providing that data to UI elements and tracking local player objects.
@@ -55,8 +48,6 @@ public class LocalLobby
 
     public CallbackValue<int> MaxPlayerCount = new();
 
-    public CallbackValue<LobbyColor> LocalLobbyColor = new();
-
     public CallbackValue<long> LastUpdated = new();
 
     public int PlayerCount => LocalPlayers.Count;
@@ -73,7 +64,6 @@ public class LocalLobby
         LobbyCode.Value = "";
         Locked.Value = false;
         Private.Value = false;
-        LocalLobbyColor.Value = LobbyColor.None;
         AvailableSlots.Value = 4;
         MaxPlayerCount.Value = 4;
         onUserJoined = null;
@@ -151,8 +141,6 @@ public class LocalLobby
         sb.AppendLine(LocalLobbyState.Value.ToString());
         sb.Append("Lobby LocalLobbyState Last Edit: ");
         sb.AppendLine(new DateTime(LastUpdated.Value).ToString(CultureInfo.InvariantCulture));
-        sb.Append("LocalLobbyColor: ");
-        sb.AppendLine(LocalLobbyColor.Value.ToString());
         sb.Append("RelayCode: ");
         sb.AppendLine(RelayCode.Value);
 

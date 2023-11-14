@@ -6,7 +6,6 @@ public static class LobbyConverters
     {
         private const string key_RelayCode = nameof(LocalLobby.RelayCode);
         private const string key_LobbyState = nameof(LocalLobby.LocalLobbyState);
-        private const string key_LobbyColor = nameof(LocalLobby.LocalLobbyColor);
         private const string key_LastEdit = nameof(LocalLobby.LastUpdated);
 
         private const string key_Displayname = nameof(LocalPlayer.DisplayName);
@@ -18,7 +17,6 @@ public static class LobbyConverters
             {
                 { key_RelayCode, lobby.RelayCode.Value },
                 { key_LobbyState, ((int)lobby.LocalLobbyState.Value).ToString() },
-                { key_LobbyColor, ((int)lobby.LocalLobbyColor.Value).ToString() },
                 { key_LastEdit, lobby.LastUpdated.Value.ToString() }
             };
 
@@ -68,9 +66,6 @@ public static class LobbyConverters
             localLobby.LocalLobbyState.Value = remoteLobby.Data?.ContainsKey(key_LobbyState) == true
                 ? (LobbyState)int.Parse(remoteLobby.Data[key_LobbyState].Value)
                 : LobbyState.Lobby;
-            localLobby.LocalLobbyColor.Value = remoteLobby.Data?.ContainsKey(key_LobbyColor) == true
-                ? (LobbyColor)int.Parse(remoteLobby.Data[key_LobbyColor].Value)
-                : LobbyColor.None;
 
             //Custom User Data Conversions
             var remotePlayerIDs = new List<string>();
