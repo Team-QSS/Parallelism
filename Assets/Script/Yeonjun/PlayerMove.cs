@@ -19,10 +19,8 @@ public class PlayerMove : MonoBehaviour
     
     private float horizontalMove, verticalMove;
     private Quaternion lookDir;
-    public Vector3 moveDir;
+    private Vector3 moveDir;
     private Vector3 dashPoint;
-
-    private RaycastHit hit;
     
     private Rigidbody playerRigid;
     private Animator animator;
@@ -50,8 +48,10 @@ public class PlayerMove : MonoBehaviour
     {
         verticalMove = Input.GetAxisRaw("Vertical");
         horizontalMove = Input.GetAxisRaw("Horizontal");
+        
         if (Input.GetKeyDown(KeyCode.LeftShift)) isRun = true;
         if (Input.GetKeyUp(KeyCode.LeftShift)) isRun = false;
+        
         if (Input.GetKeyDown(KeyCode.Space)) Dash();
     }
 
