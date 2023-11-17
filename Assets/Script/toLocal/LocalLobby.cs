@@ -32,8 +32,6 @@ public class LocalLobby
 
     public CallbackValue<string> RelayCode = new();
 
-    public CallbackValue<ServerAddress> RelayServer = new();
-
     public CallbackValue<string> LobbyName = new();
 
     public CallbackValue<string> HostID = new();
@@ -51,7 +49,6 @@ public class LocalLobby
     public CallbackValue<long> LastUpdated = new();
 
     public int PlayerCount => LocalPlayers.Count;
-    private ServerAddress m_RelayServer;
 
     public List<LocalPlayer> LocalPlayers { get; } = new();
 
@@ -88,6 +85,7 @@ public class LocalLobby
 
     private void OnHostChanged(string newHostId)
     {
+        Debug.Log("host change");
         foreach(var player in LocalPlayers)
         {
             player.IsHost.Value = player.ID.Value == newHostId;

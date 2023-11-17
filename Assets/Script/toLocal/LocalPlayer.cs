@@ -10,6 +10,13 @@ public enum PlayerStatus
     Menu = 16 // User is not in a lobby, in one of the main menus.
 }
 
+public enum Team
+{
+    None = 0,
+    Red = 1,
+    Blue = 2
+}
+
 /// <summary>
 /// Data for a local player instance. This will update data and is observed to know when to push local player changes to the entire lobby.
 /// </summary>
@@ -21,16 +28,18 @@ public class LocalPlayer
     public CallbackValue<PlayerStatus> UserStatus = new(0);
     public CallbackValue<string> ID = new("");
     public CallbackValue<int> Index = new(0);
+    public CallbackValue<Team> Team = new(0);
 
     public DateTime LastUpdated;
 
-    public LocalPlayer(string id, int index, bool isHost, string displayName = default, PlayerStatus status = default)
+    public LocalPlayer(string id, int index, bool isHost, string displayName = default, PlayerStatus status = default, Team team = default)
     {
         ID.Value = id;
         IsHost.Value = isHost;
         Index.Value = index;
         DisplayName.Value = displayName;
         UserStatus.Value = status;
+        Team.Value = team;
     }
 
     public void ResetState()

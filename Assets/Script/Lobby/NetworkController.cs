@@ -16,14 +16,14 @@ public class NetworkController : MonoBehaviour
     private LocalPlayer m_LocalUser;
     private LocalLobby m_LocalLobby;
     
-    public const string KEY_RELAY_JOIN_CODE = "joinCode";
-    public const string GAMEMODE = "gameMode";
+    //public const string GAMEMODE = "gameMode";
 
     private const string key_RelayCode = nameof(LocalLobby.RelayCode);
     private const string key_LobbyState = nameof(LocalLobby.LocalLobbyState);
 
     private const string key_Displayname = nameof(LocalPlayer.DisplayName);
     private const string key_Userstatus = nameof(LocalPlayer.UserStatus);
+    private const string key_Team = nameof(LocalPlayer.Team);
     
     private Lobby m_CurrentLobby;
     private LobbyEventCallbacks m_LobbyEventCallbacks = new();
@@ -37,13 +37,14 @@ public class NetworkController : MonoBehaviour
     private ServiceRateLimiter m_CreateCooldown = new(2, 6f);
     private ServiceRateLimiter m_JoinCooldown = new(2, 6f);
     private ServiceRateLimiter m_QuickJoinCooldown = new(1, 10f);
-    private ServiceRateLimiter m_GetLobbyCooldown = new(1, 1f);
+    private ServiceRateLimiter m_GetLobbyCooldown = new(1, 2f);
     private ServiceRateLimiter m_DeleteLobbyCooldown = new(2, 1f);
     private ServiceRateLimiter m_UpdateLobbyCooldown = new(5, 5f);
     private ServiceRateLimiter m_UpdatePlayerCooldown = new(5, 5f);
     private ServiceRateLimiter m_LeaveLobbyOrRemovePlayer = new(5, 1);
     private ServiceRateLimiter m_HeartBeatCooldown = new(5, 30);
 
+    public bool IsExit;
     
     [SerializeField] private SpawnLocation _spawnLocation;
     
@@ -51,6 +52,8 @@ public class NetworkController : MonoBehaviour
     {
         m_LocalUser = new LocalPlayer("", 0, false, "LocalPlayer");
         m_LocalLobby = new LocalLobby { LocalLobbyState = { Value = LobbyState.Lobby } };
+
+        Application.wantsToQuit += OnAppQuit;
         
         if (UnityServices.State != ServicesInitializationState.Initialized)
         {
@@ -67,14 +70,29 @@ public class NetworkController : MonoBehaviour
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
         }
         
-        StartHeartBeat();
-        GetLobby();
+    }
+
+    private bool OnAppQuit()
+    {
+        Quit();
+        return true;
+    }
+
+    private async void Quit()
+    {
+        IsExit = true;
+        await KickPlayer();
     }
 
     private async void StartHeartBeat()
     {
         while (m_CurrentLobby != null)
         {
+            if (IsExit)
+            {
+                break;
+            }
+            
             await HandleLobbyHeartbeat();
             await Task.Delay(8000);
         }
@@ -84,6 +102,11 @@ public class NetworkController : MonoBehaviour
     {
         while (m_CurrentLobby != null)
         {
+            if (IsExit)
+            {
+                break;
+            }
+            
             await HandleLobbyPollForUpdates();
         }
     }
@@ -103,6 +126,7 @@ public class NetworkController : MonoBehaviour
         {
             return;
         }
+        
         await m_HeartBeatCooldown.QueueUntilCooldown();
         
         await LobbyService.Instance.SendHeartbeatPingAsync(m_CurrentLobby.Id);
@@ -110,10 +134,33 @@ public class NetworkController : MonoBehaviour
 
     private async Task HandleLobbyPollForUpdates()
     {
-        if (m_CurrentLobby == null)
-            return;
-        await m_GetLobbyCooldown.QueueUntilCooldown();
-        m_CurrentLobby = await LobbyService.Instance.GetLobbyAsync(m_CurrentLobby.Id);
+        try
+        {
+            if (m_CurrentLobby == null)
+            {
+                return;
+            }
+            
+            if (m_GetLobbyCooldown.IsCoolingDown)
+            {
+                return;
+            }
+            
+            await m_GetLobbyCooldown.QueueUntilCooldown();
+            
+            Debug.Log("update!!");
+            
+            m_CurrentLobby = await LobbyService.Instance.GetLobbyAsync(m_CurrentLobby.Id);
+            if (m_CurrentLobby.Players.Count != m_LocalLobby.LocalPlayers.Count)
+            {
+                LobbyConverters.RemoteToLocal(m_CurrentLobby,m_LocalLobby);
+            }
+            _spawnLocation.OnPlayerChanged();
+        }
+        catch (LobbyServiceException e)
+        {
+            Debug.Log(e);
+        }
     }
 
     private async Task<string> GetRelayJoinCode(Allocation allocation)
@@ -154,8 +201,11 @@ public class NetworkController : MonoBehaviour
             new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, user.DisplayName.Value);
         var UserstatusObject =
             new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)user.UserStatus.Value).ToString());
+        var TeamObject =
+            new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, ((int)user.Team.Value).ToString());
         data.Add(key_Displayname, displayNameObject);
         data.Add(key_Userstatus, UserstatusObject);
+        data.Add(key_Team, TeamObject);
         return data;
     }
     
@@ -173,17 +223,24 @@ public class NetworkController : MonoBehaviour
             await m_CreateCooldown.QueueUntilCooldown();
             
             const int maxPlayers = 4;
+            Allocation allocation = await AllocateRelay();
+            var relayJoinCode = await GetRelayJoinCode(allocation);
             m_CurrentLobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, maxPlayers, new CreateLobbyOptions
             {
                 IsPrivate = isPrivate,
-                Player = new Player(id: AuthenticationService.Instance.PlayerId, data: CreateInitialPlayerData(m_LocalUser))
-                
+                Player = new Player(id: AuthenticationService.Instance.PlayerId, data: CreateInitialPlayerData(m_LocalUser)),
+                Data = new Dictionary<string, DataObject> { {key_RelayCode, new DataObject(DataObject.VisibilityOptions.Member, relayJoinCode)} }
             });
-            LobbyConverters.RemoteToLocal(m_CurrentLobby, m_LocalLobby);
-            m_LocalUser.IsHost.Value = true;
+            
+            await UpdatePlayerDataAsync(new Dictionary<string, string> { { key_Userstatus, ((int)PlayerStatus.Lobby).ToString()} }) ;
+            
+            m_LocalUser.IsHost.ForceSet(true);
+            
             await BindLobby();
+            
             StartHeartBeat();
             GetLobby();
+            
             Debug.Log("create " + m_LocalLobby.LobbyName.Value + " " + m_LocalLobby.MaxPlayerCount.Value + " " + m_LocalLobby.LobbyID.Value + " " +
                       m_LocalLobby.LobbyCode.Value);
         }
@@ -219,8 +276,7 @@ public class NetworkController : MonoBehaviour
         var shouldLock = false;
         foreach (var dataNew in data)
         {
-            DataObject.IndexOptions index = dataNew.Key == "LocalLobbyColor" ? DataObject.IndexOptions.N1 : 0;
-            DataObject dataObj = new DataObject(DataObject.VisibilityOptions.Public, dataNew.Value, index);
+            DataObject dataObj = new DataObject(DataObject.VisibilityOptions.Public, dataNew.Value);
             dataCurr[dataNew.Key] = dataObj;
 
             if (dataNew.Key == "LocalLobbyState")
@@ -236,6 +292,8 @@ public class NetworkController : MonoBehaviour
 
         UpdateLobbyOptions updateOptions = new UpdateLobbyOptions { Data = dataCurr, IsLocked = shouldLock };
         m_CurrentLobby = await LobbyService.Instance.UpdateLobbyAsync(m_CurrentLobby.Id, updateOptions);
+        
+        LobbyConverters.RemoteToLocal(m_CurrentLobby, m_LocalLobby);
     }
     
     public async Task UpdatePlayerDataAsync(Dictionary<string, string> data)
@@ -269,6 +327,24 @@ public class NetworkController : MonoBehaviour
             ConnectionInfo = null
         };
         m_CurrentLobby = await LobbyService.Instance.UpdatePlayerAsync(m_CurrentLobby.Id, playerId, updateOptions);
+        
+        LobbyConverters.RemoteToLocal(m_CurrentLobby, m_LocalLobby);
+        
+        foreach (var plr in m_LocalLobby.LocalPlayers)
+        {
+            if (plr.ID.Value == AuthenticationService.Instance.PlayerId)
+            {
+                m_LocalUser.DisplayName.Value = plr.DisplayName.Value;
+                m_LocalUser.ID.Value = plr.ID.Value;
+                m_LocalUser.IsHost.Value = plr.IsHost.Value;
+                m_LocalUser.UserStatus.Value = plr.UserStatus.Value;
+                m_LocalUser.Team.Value = plr.Team.Value;
+                m_LocalUser.Index.Value = plr.Index.Value;
+                m_LocalUser.LastUpdated = plr.LastUpdated;
+            }
+        }
+        
+        _spawnLocation.OnPlayerChanged();
     }
     
     [Command]
@@ -281,8 +357,15 @@ public class NetworkController : MonoBehaviour
                 Debug.LogError("lobby is not null");
                 return;
             }
+
+            if (m_QuickJoinCooldown.IsCoolingDown)
+            {
+                return;
+            }
             
-            await m_QuickJoinCooldown.QueueUntilCooldown();
+#pragma warning disable CS4014
+            m_QuickJoinCooldown.QueueUntilCooldown();
+#pragma warning restore CS4014
             
             var joinRequest = new QuickJoinLobbyOptions
             {
@@ -291,16 +374,19 @@ public class NetworkController : MonoBehaviour
             
             m_CurrentLobby = await LobbyService.Instance.QuickJoinLobbyAsync(joinRequest);
             
+            await UpdatePlayerDataAsync(new Dictionary<string, string> { { key_Userstatus, ((int)PlayerStatus.Lobby).ToString()} }) ;
             if (m_CurrentLobby == null)
             {
                 await KickPlayer();
                 throw new Exception("jobby Data is null");
             }
             
-            LobbyConverters.RemoteToLocal(m_CurrentLobby, m_LocalLobby);
             m_LocalUser.IsHost.ForceSet(false);
+            
             await BindLobby();
+            
             GetLobby();
+            
             Debug.Log("quick join " + m_CurrentLobby);
             
         }
@@ -357,6 +443,11 @@ public class NetworkController : MonoBehaviour
                 return;
             }
 
+            if (m_JoinCooldown.IsCoolingDown)
+            {
+                return;
+            }
+            
             await m_JoinCooldown.QueueUntilCooldown();
             
             var joinRequest = new JoinLobbyByCodeOptions
@@ -365,17 +456,19 @@ public class NetworkController : MonoBehaviour
             };
             
             m_CurrentLobby = await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode, joinRequest);
-            
+            await UpdatePlayerDataAsync(new Dictionary<string, string> { { key_Userstatus, ((int)PlayerStatus.Lobby).ToString()} }) ;
             if (m_CurrentLobby == null)
             {
                 await KickPlayer();
                 throw new Exception("jobby Data is null");
             }
             
-            LobbyConverters.RemoteToLocal(m_CurrentLobby, m_LocalLobby);
             m_LocalUser.IsHost.ForceSet(false);
+            
             await BindLobby();
+            
             GetLobby();
+            
             Debug.Log("join w code " + lobbyCode);
         }
         catch (LobbyServiceException e)
@@ -412,6 +505,7 @@ public class NetworkController : MonoBehaviour
             if (playerId == null)
             {
                 await LobbyService.Instance.RemovePlayerAsync(m_CurrentLobby.Id, AuthenticationService.Instance.PlayerId);
+                _spawnLocation.Clear();
             }
             else
             {
@@ -434,10 +528,10 @@ public class NetworkController : MonoBehaviour
 
     private void PrintPlayers(Lobby lobby)
     {
-        Debug.Log("in lobby " + lobby.Name + " " + lobby.Players.Count);
+        Debug.Log("in lobby " + lobby.Name + " " + lobby.Players.Count + " " + lobby.HostId);
         foreach (var player in lobby.Players)
         {
-            Debug.Log(player.Id + " " + player.Data[key_Displayname].Value + " " + player.Data[key_Userstatus].Value);
+            Debug.Log(player.Id + " " + player.Data[key_Displayname].Value + " " + (PlayerStatus)int.Parse(player.Data[key_Userstatus].Value) + " " + (Team)int.Parse(player.Data[key_Team].Value) + " " );
         }
     }
 
@@ -451,7 +545,17 @@ public class NetworkController : MonoBehaviour
         Debug.Log(l.LocalLobbyState.Value);
         Debug.Log(l.RelayCode.Value);
         Debug.Log(l.AvailableSlots.Value);
-        Debug.Log(l.LocalPlayers); 
+        foreach (var plr in l.LocalPlayers)
+        {
+            Debug.Log(plr.DisplayName.Value);
+            Debug.Log(plr.ID.Value);
+            Debug.Log(plr.IsHost.Value);
+            Debug.Log(plr.UserStatus.Value);
+            Debug.Log(plr.Team.Value);
+            Debug.Log(plr.Index.Value);
+            Debug.Log(plr.LastUpdated);
+            Debug.Log(" ");
+        }
     }
 
     [Command]
@@ -462,7 +566,9 @@ public class NetworkController : MonoBehaviour
         Debug.Log(l.ID.Value);
         Debug.Log(l.IsHost.Value);
         Debug.Log(l.UserStatus.Value);
+        Debug.Log(l.Team.Value);
         Debug.Log(l.Index.Value);
+        Debug.Log(l.LastUpdated);
     }
 
     public List<LocalPlayer> GetPlayers()
@@ -475,8 +581,19 @@ public class NetworkController : MonoBehaviour
     {
         if (m_CurrentLobby == null) return;
         await UpdatePlayerDataAsync(new Dictionary<string, string> { { key_Userstatus, ready ? ((int)PlayerStatus.Ready).ToString() : ((int)PlayerStatus.Lobby).ToString()} }) ;
-        LobbyConverters.RemoteToLocal(m_CurrentLobby, m_LocalLobby);
-        
+    }
+    
+    [Command]
+    private async Task ChangeTeam(string team = "red")
+    {
+        if (m_CurrentLobby == null) return;
+        await UpdatePlayerDataAsync(new Dictionary<string, string> { { key_Team, team switch 
+            {
+            "red" => ((int)Team.Red).ToString(),
+            "blue" => ((int)Team.Blue).ToString(),
+            _ => ((int)Team.None).ToString()
+            } 
+        } });
     }
     
     public async Task BindLocalLobbyToRemote(string lobbyID, LocalLobby localLobby)
@@ -488,6 +605,7 @@ public class NetworkController : MonoBehaviour
 
             m_LobbyEventCallbacks.DataChanged += changes =>
             {
+                Debug.Log("data changed");
                 foreach (var (changedKey, changedValue) in changes)
                 {
                     switch (changedKey)
@@ -504,6 +622,7 @@ public class NetworkController : MonoBehaviour
 
             m_LobbyEventCallbacks.DataAdded += changes =>
             {
+                Debug.Log("data added");
                 foreach (var (changedKey, changedValue) in changes)
                 {
                     switch (changedKey)
@@ -520,6 +639,7 @@ public class NetworkController : MonoBehaviour
 
             m_LobbyEventCallbacks.DataRemoved += changes =>
             {
+                Debug.Log("data removed");
                 foreach (var change in changes)
                 {
                     var changedKey = change.Key;
@@ -530,14 +650,45 @@ public class NetworkController : MonoBehaviour
 
             m_LobbyEventCallbacks.PlayerLeft += players =>
             {
+                Debug.Log("player left");
                 foreach (var leftPlayerIndex in players)
                 {
                     localLobby.RemovePlayer(leftPlayerIndex);
                 }
+
+                int[] ints = { -2, -2, -2, -2 };
+
+                foreach (var plr in localLobby.LocalPlayers)
+                {
+                    ints[plr.Index.Value] = plr.Index.Value;
+                }
+                
+                Debug.Log(ints[0] + " " + ints[1] + " "+ ints[2] + " " + ints[3]);
+                for (var i = 1; i < ints.Length; i++)
+                {
+                    if (ints[i] - 1 > ints[i - 1])
+                    {
+                        ints[i - 1] = ints[i] - 1;
+                        ints[i] = -2;
+                    }
+                    Debug.Log(ints[0] + " " + ints[1] + " "+ ints[2] + " " + ints[3]);
+                }
+                
+                for (var i = 0; i < localLobby.LocalPlayers.Count; i++)
+                {
+                    if (ints[i] == -2)
+                    {
+                        break;
+                    }
+                    localLobby.LocalPlayers[i].Index.Value = ints[i];
+                }
+                
+                _spawnLocation.OnPlayerChanged();
             };
 
             m_LobbyEventCallbacks.PlayerJoined += players =>
             {
+                Debug.Log("player joined");
                 foreach (var playerChanges in players)
                 {
                     Player joinedPlayer = playerChanges.Player;
@@ -557,10 +708,12 @@ public class NetworkController : MonoBehaviour
 
                     localLobby.AddPlayer(index, newPlayer);
                 }
+                _spawnLocation.OnPlayerChanged();
             };
 
             m_LobbyEventCallbacks.PlayerDataChanged += changes =>
             {
+                Debug.Log("player data changed");
                 foreach (var (playerIndex, playerChanges) in changes)
                 {
                     var localPlayer = localLobby.GetLocalPlayer(playerIndex);
@@ -573,10 +726,13 @@ public class NetworkController : MonoBehaviour
                         ParseCustomPlayerData(localPlayer, key, playerDataObject.Value);
                     }
                 }
+                
+                _spawnLocation.OnPlayerChanged();
             };
 
             m_LobbyEventCallbacks.PlayerDataAdded += changes =>
             {
+                Debug.Log("player data added");
                 foreach (var (playerIndex, playerChanges) in changes)
                 {
                     var localPlayer = localLobby.GetLocalPlayer(playerIndex);
@@ -593,6 +749,7 @@ public class NetworkController : MonoBehaviour
 
             m_LobbyEventCallbacks.PlayerDataRemoved += changes =>
             {
+                Debug.Log("player data removed");
                 foreach (var (playerIndex, playerChanges) in changes)
                 {
                     var localPlayer = localLobby.GetLocalPlayer(playerIndex);
@@ -611,6 +768,7 @@ public class NetworkController : MonoBehaviour
 
             m_LobbyEventCallbacks.LobbyChanged += changes =>
             {
+                Debug.Log("lobby changed");
                 if (changes.Name.Changed)
                     localLobby.LobbyName.Value = changes.Name.Value;
                 if (changes.HostId.Changed)
@@ -660,6 +818,7 @@ public class NetworkController : MonoBehaviour
             m_LobbyEventCallbacks.KickedFromLobby += () =>
             {
                 Debug.Log("Left Lobby");
+                _spawnLocation.Clear();
                 Dispose();
             };
             await LobbyService.Instance.SubscribeToLobbyEventsAsync(lobbyID, m_LobbyEventCallbacks);
@@ -675,6 +834,9 @@ public class NetworkController : MonoBehaviour
             case key_Displayname:
                 player.DisplayName.Value = playerDataValue;
                 break;
+            case key_Team:
+                player.Team.Value = (Team)int.Parse(playerDataValue);
+                break;
         }
     }
     
@@ -688,7 +850,7 @@ public class NetworkController : MonoBehaviour
     {
         await BindLocalLobbyToRemote(m_LocalLobby.LobbyID.Value, m_LocalLobby);
     }
-    
+
     public class ServiceRateLimiter
     {
         public Action<bool> onCooldownChange;
@@ -758,5 +920,4 @@ public class NetworkController : MonoBehaviour
             }
         }
     }
-    
 }

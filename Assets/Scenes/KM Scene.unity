@@ -371,6 +371,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e5c0a60d9ba2a6c4995038df9b70b631, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  IsExit: 0
   _spawnLocation: {fileID: 899058082}
 --- !u!4 &134616478
 Transform:
@@ -1073,6 +1074,16 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4845659738863557451, guid: 2da3dcc22749e7f4280737786d898334,
+        type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 1000
+      objectReference: {fileID: 0}
+    - target: {fileID: 4845659738863557451, guid: 2da3dcc22749e7f4280737786d898334,
+        type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 300
+      objectReference: {fileID: 0}
     - target: {fileID: 4845788016647226013, guid: 2da3dcc22749e7f4280737786d898334,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -1301,12 +1312,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4b035ce9e2b98d64a86f68a1689285d8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _players:
-  - {fileID: 308765046}
-  - {fileID: 30183618}
-  - {fileID: 75934179}
-  - {fileID: 603454098}
   _networkController: {fileID: 134616477}
+  LobbyPlayerObj: {fileID: 3376577611753045728, guid: 7a591a7aaf36624439a8ec59617ec2a4,
+    type: 3}
 --- !u!1 &1769721300
 GameObject:
   m_ObjectHideFlags: 0

@@ -10,7 +10,8 @@ public static class LobbyConverters
 
         private const string key_Displayname = nameof(LocalPlayer.DisplayName);
         private const string key_Userstatus = nameof(LocalPlayer.UserStatus);
-
+        private const string key_Team = nameof(LocalPlayer.Team);
+        
         public static Dictionary<string, string> LocalToRemoteLobbyData(LocalLobby lobby)
         {
             var data = new Dictionary<string, string>
@@ -30,6 +31,7 @@ public static class LobbyConverters
                 return data;
             data.Add(key_Displayname, user.DisplayName.Value);
             data.Add(key_Userstatus, ((int)user.UserStatus.Value).ToString());
+            data.Add(key_Team, ((int)user.Team.Value).ToString());
             return data;
         }
 
@@ -81,12 +83,15 @@ public static class LobbyConverters
                 var userStatus = player.Data?.ContainsKey(key_Userstatus) == true
                     ? (PlayerStatus)int.Parse(player.Data[key_Userstatus].Value)
                     : PlayerStatus.Lobby;
+                var team = player.Data?.ContainsKey(key_Team) == true
+                    ? (Team)int.Parse(player.Data[key_Team].Value)
+                    : Team.None;
 
                 LocalPlayer localPlayer = localLobby.GetLocalPlayer(index);
 
                 if (localPlayer == null)
                 {
-                    localPlayer = new LocalPlayer(id, index, isHost, displayName, userStatus);
+                    localPlayer = new LocalPlayer(id, index, isHost, displayName, userStatus, team);
                     localLobby.AddPlayer(index, localPlayer);
                 }
                 else
@@ -96,6 +101,7 @@ public static class LobbyConverters
                     localPlayer.IsHost.Value = isHost;
                     localPlayer.DisplayName.Value = displayName;
                     localPlayer.UserStatus.Value = userStatus;
+                    localPlayer.Team.Value = team;
                 }
 
                 index++;
