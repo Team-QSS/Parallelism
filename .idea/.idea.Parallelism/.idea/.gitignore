@@ -3,9 +3,9 @@
 /workspace.xml
 # Rider ignored files
 /modules.xml
+/.idea.Parallelism.iml
 /projectSettingsUpdater.xml
 /contentModel.xml
-/.idea.Parallelism.iml
 # Editor-based HTTP Client requests
 /httpRequests/
 # Datasource local storage ignored files
