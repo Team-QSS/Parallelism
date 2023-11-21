@@ -10,7 +10,7 @@ using Random = UnityEngine.Random;
 
 public class Attacker : MonoBehaviour
 {
-    [FormerlySerializedAs("attackerAnchor")] [SerializeField] private Transform moverTransform;
+    public Transform moverTransform;
 
     [Header("Camera")] [SerializeField] private Vector2                 mouseSensitivity;
 
