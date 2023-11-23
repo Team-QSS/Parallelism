@@ -1,3 +1,4 @@
+using System;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -5,7 +6,7 @@ public class SpawnLocation : MonoBehaviour
 { 
     [SerializeField] private NetworkController _networkController;
     [SerializeField] private GameObject LobbyPlayerObj;
-
+    
     public void OnPlayerChanged()
     {
         var players = _networkController.GetPlayers();

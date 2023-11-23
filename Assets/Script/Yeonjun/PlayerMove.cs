@@ -1,10 +1,7 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.UIElements;
 
-public class PlayerMove : MonoBehaviour
+public class PlayerMove : NetworkBehaviour
 {
     [SerializeField] private float walkSpeed;
     [SerializeField] private float runSpeed;
@@ -34,12 +31,22 @@ public class PlayerMove : MonoBehaviour
 
     private void Update()
     {
+        if (!IsOwner)
+        {
+            return;
+        }
+        
         GetInput();
         currentTime += Time.deltaTime;
     }
 
     private void FixedUpdate()
     {
+        if (!IsOwner)
+        {
+            return;
+        }
+        
         MovePlayer();
         PlayerRotate();
     }
