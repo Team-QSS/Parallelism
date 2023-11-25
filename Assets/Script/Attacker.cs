@@ -43,6 +43,7 @@ public class Attacker : MonoBehaviour
         MoverTrace(smoothDelta);
         CameraRotate(smoothDelta);
         
+        //현재 선택된 Sword컴포넌트 기능들 호출
         if (currentSword)
         {
             currentSword.Attack();
@@ -59,6 +60,7 @@ public class Attacker : MonoBehaviour
         SelectInput();
     }
 
+    //Sword 선택 입력
     private void SelectInput()
     {
         for (int i = 0; i < swordCount; i++)
@@ -70,10 +72,7 @@ public class Attacker : MonoBehaviour
         }
     }
 
-    public void Hit()
-    {
-    }
-
+    //Sword 선택
     private void Select(int index)
     {
         if (currentSword)
@@ -96,6 +95,7 @@ public class Attacker : MonoBehaviour
         }
     }
 
+    //붙어있는 Sword 설정
     public void SetInnerSword()
     {
         var       selected     = currentSword && currentSword.IsStuck ? Swords.FindIndex(e => e == currentSword) : 0;
@@ -124,12 +124,14 @@ public class Attacker : MonoBehaviour
 
     #region Camera
 
+    //Player1 - Move 따라가는 것
     private void MoverTrace(float delta)
     {
         var targetPosition = moverTransform.position;
         transform.position = Vector3.Lerp(transform.position, targetPosition, 10 * delta);
     }
 
+    //카메라 회전
     private void CameraRotate(float delta)
     {
         var x           = -Input.GetAxis("Mouse Y") * mouseSensitivity.y * delta;
