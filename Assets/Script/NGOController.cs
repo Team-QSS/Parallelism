@@ -1,5 +1,4 @@
 using System;
-using QFSW.QC;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using Unity.Networking.Transport.Relay;
@@ -14,22 +13,13 @@ public class NGOController : NetworkBehaviour
     {
         DontDestroyOnLoad(gameObject);
     }
-
-    [Command]
-    private async void PrintRelay(string relay)
-    {
-        var allocation = await RelayService.Instance.JoinAllocationAsync(relay);
-        Debug.Log(allocation.AllocationId);
-    }
     
     public void StartHost(Allocation allocation)
     {
         try
         {
             NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(new RelayServerData(allocation, "dtls"));
-
             NetworkManager.Singleton.StartHost();
-            
             NetworkManager.Singleton.SceneManager.LoadScene("Yeonjun Scene",LoadSceneMode.Single);
         }
         catch (Exception e)
@@ -49,7 +39,6 @@ public class NGOController : NetworkBehaviour
             
             var allocation = await RelayService.Instance.JoinAllocationAsync(joincode);
             NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(new RelayServerData(allocation, "dtls"));
-
             NetworkManager.Singleton.StartClient();
         }
         catch (Exception e)

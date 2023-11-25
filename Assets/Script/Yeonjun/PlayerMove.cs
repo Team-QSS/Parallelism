@@ -1,4 +1,5 @@
 using Unity.Netcode;
+using Unity.Netcode.Components;
 using UnityEngine;
 
 public class PlayerMove : NetworkBehaviour
@@ -20,12 +21,12 @@ public class PlayerMove : NetworkBehaviour
     private Vector3 dashPoint;
     
     private Rigidbody playerRigid;
-    private Animator animator;
+    private NetworkAnimator animator;
 
     private void Start()
     {
         playerRigid = GetComponent<Rigidbody>();
-        animator = GetComponent<Animator>();
+        animator = GetComponent<NetworkAnimator>();
         currentTime = dashCol;
     }
 
@@ -65,7 +66,7 @@ public class PlayerMove : NetworkBehaviour
     private void Dash()
     {
         if (dashCol > currentTime) return; 
-        animator.SetTrigger("Dash");
+        animator.Animator.SetTrigger("Dash");
         playerRigid.velocity = transform.forward * dashRange;
         currentTime = 0f;
     }
@@ -75,8 +76,8 @@ public class PlayerMove : NetworkBehaviour
         moveSpeed = isRun ? runSpeed : walkSpeed;
         moveDir = new Vector3(horizontalMove, 0f, verticalMove).normalized;
         
-        animator.SetBool("isMove", moveDir != new Vector3(0f, 0f, 0f));
-        animator.SetBool("isRun", isRun);
+        animator.Animator.SetBool("isMove", moveDir != new Vector3(0f, 0f, 0f));
+        animator.Animator.SetBool("isRun", isRun);
         
         playerRigid.MovePosition(transform.position + moveDir * (moveSpeed * Time.fixedDeltaTime));
     }
