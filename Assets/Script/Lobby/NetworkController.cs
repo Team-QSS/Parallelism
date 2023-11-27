@@ -14,17 +14,17 @@ using Random = UnityEngine.Random;
 
 public class NetworkController : MonoBehaviour
 {
-    private LocalPlayer m_LocalUser;
-    private LocalLobby m_LocalLobby;
+    public LocalPlayer m_LocalUser;
+    public LocalLobby m_LocalLobby;
     
     //public const string GAMEMODE = "gameMode";
 
-    private const string key_RelayCode = nameof(LocalLobby.RelayCode);
-    private const string key_LobbyState = nameof(LocalLobby.LocalLobbyState);
+    public const string key_RelayCode = nameof(LocalLobby.RelayCode);
+    public const string key_LobbyState = nameof(LocalLobby.LocalLobbyState);
 
-    private const string key_Displayname = nameof(LocalPlayer.DisplayName);
-    private const string key_Userstatus = nameof(LocalPlayer.UserStatus);
-    private const string key_Team = nameof(LocalPlayer.Team);
+    public const string key_Displayname = nameof(LocalPlayer.DisplayName);
+    public const string key_Userstatus = nameof(LocalPlayer.UserStatus);
+    public const string key_Team = nameof(LocalPlayer.Team);
     
     private Lobby m_CurrentLobby;
     private LobbyEventCallbacks m_LobbyEventCallbacks = new();
@@ -163,11 +163,8 @@ public class NetworkController : MonoBehaviour
             
             Debug.Log("update!!");
             
-            m_CurrentLobby = await LobbyService.Instance.GetLobbyAsync(m_CurrentLobby.Id);
-            if (m_CurrentLobby.Players.Count != m_LocalLobby.LocalPlayers.Count)
-            {
-                LobbyConverters.RemoteToLocal(m_CurrentLobby,m_LocalLobby);
-            }
+            m_CurrentLobby = await LobbyService.Instance.GetLobbyAsync(m_CurrentLobby.Id); 
+            LobbyConverters.RemoteToLocal(m_CurrentLobby,m_LocalLobby);
             
             Check();
             
@@ -211,7 +208,7 @@ public class NetworkController : MonoBehaviour
     }
     
     [Command]
-    public async void CreateLobby(string lobbyName, bool isPrivate)
+    public async void CreateLobby(string lobbyName = "a", bool isPrivate = false)
     {
         try
         {
@@ -296,7 +293,9 @@ public class NetworkController : MonoBehaviour
             }
 
             if (m_UpdateLobbyCooldown.TaskQueued)
+            {
                 return;
+            }
             await m_UpdateLobbyCooldown.QueueUntilCooldown();
 
             UpdateLobbyOptions updateOptions = new UpdateLobbyOptions { Data = dataCurr, IsLocked = shouldLock };
@@ -318,7 +317,7 @@ public class NetworkController : MonoBehaviour
             Debug.LogError("lobby is null");
             return;
         }
-
+        
         var playerId = AuthenticationService.Instance.PlayerId;
         var dataCurr = new Dictionary<string, PlayerDataObject>();
         foreach (var (key, value) in data)
@@ -379,7 +378,8 @@ public class NetworkController : MonoBehaviour
             }
         }
 
-        if (readyCount == m_LocalLobby.PlayerCount)
+        //m_LocalLobby.PlayerCount
+        if (readyCount == 4)
         {
             Game();
         }
@@ -397,11 +397,40 @@ public class NetworkController : MonoBehaviour
         
     }
     
-    private void Check()
+    private async void Check()
     {
-        if (m_LocalLobby.LocalLobbyState.Value == LobbyState.InGame && !IsLobbyHost() && !_ngoController.IsConnected())
+        if (m_LocalLobby.LocalLobbyState.Value == LobbyState.InGame && !IsLobbyHost() && m_LocalUser.UserStatus.Value != PlayerStatus.Connecting && m_LocalUser.UserStatus.Value != PlayerStatus.InGame)
         {
             _ngoController.StartClient(m_LocalLobby.RelayCode.Value);
+        }
+
+        if (m_LocalLobby.LocalLobbyState.Value == LobbyState.FastSetting)
+        {
+            if (m_LocalUser.Index.Value < 2)
+            {
+                await ChangeTeam();
+            }
+            else
+            {
+                await ChangeTeam("blue");
+            }
+
+            await PlayerReady();
+
+            if (!IsLobbyHost())
+            {
+                return;
+            }
+
+            foreach (var plr in m_LocalLobby.LocalPlayers)
+            {
+                if (plr.Team.Value == Team.None || plr.UserStatus.Value != PlayerStatus.Ready)
+                {
+                    return;
+                }
+            }
+
+            await UpdateLobbyDataAsync(new Dictionary<string, string> { { key_LobbyState, ((int)LobbyState.Lobby).ToString() } });
         }
     }
     
@@ -652,6 +681,20 @@ public class NetworkController : MonoBehaviour
             _ => ((int)Team.None).ToString()
             } 
         } });
+    }
+
+    [Command]
+    private async void FastSetting()
+    {
+        try
+        {
+            await UpdateLobbyDataAsync(new Dictionary<string, string> { { key_LobbyState, ((int)LobbyState.FastSetting).ToString()} });
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+        }
+        
     }
     
     public async Task BindLocalLobbyToRemote(string lobbyID, LocalLobby localLobby)

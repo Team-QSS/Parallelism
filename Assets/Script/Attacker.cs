@@ -1,14 +1,8 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using Cinemachine;
+using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.Serialization;
-using Random = UnityEngine.Random;
 
-public class Attacker : MonoBehaviour
+public class Attacker : NetworkBehaviour
 {
     public Transform moverTransform;
 
@@ -21,7 +15,10 @@ public class Attacker : MonoBehaviour
 
     private void Awake()
     {
+        //Resources안쓰고 SerializeField로 바꿔도 문제 안생김?
+        //폴더 복잡해서 하나로 합치고 싶음
         var swordPrefab = Resources.Load<Sword>("Sword");
+        
         for (int i = 0; i < swordCount; i++)
         {
             var sword = Instantiate(swordPrefab);

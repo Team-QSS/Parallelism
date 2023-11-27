@@ -1,14 +1,25 @@
 using System;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class SpawnLocation : MonoBehaviour
 { 
     [SerializeField] private NetworkController _networkController;
     [SerializeField] private GameObject LobbyPlayerObj;
-    
+
+    private void Awake()
+    {
+        DontDestroyOnLoad(gameObject);
+    }
+
     public void OnPlayerChanged()
     {
+        if (SceneManager.GetActiveScene().ToString() == "Yeonjun Scene")
+        {
+            Destroy(gameObject);
+            return;
+        }
         var players = _networkController.GetPlayers();
         Clear();
         foreach (var plr in players)
