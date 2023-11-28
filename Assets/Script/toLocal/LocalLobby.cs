@@ -8,7 +8,7 @@ using UnityEngine;
 public enum LobbyState
 {
     Lobby = 1,
-    CountDown = 2,
+    FastSetting = 2,
     InGame = 4
 }
 
@@ -109,7 +109,7 @@ public class LocalLobby
 
     void OnUserChangedStatus(PlayerStatus status)
     {
-        int readyCount = 0;
+        var readyCount = 0;
         foreach (var player in LocalPlayers)
         {
             if (player.UserStatus.Value == PlayerStatus.Ready)

@@ -1,10 +1,8 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
+using Unity.Netcode;
+using Unity.Netcode.Components;
 using UnityEngine;
-using UnityEngine.UIElements;
 
-public class PlayerMove : MonoBehaviour
+public class PlayerMove : NetworkBehaviour
 {
     [SerializeField] private float walkSpeed;
     [SerializeField] private float runSpeed;
@@ -23,23 +21,33 @@ public class PlayerMove : MonoBehaviour
     private Vector3 dashPoint;
     
     private Rigidbody playerRigid;
-    private Animator animator;
+    private NetworkAnimator animator;
 
     private void Start()
     {
         playerRigid = GetComponent<Rigidbody>();
-        animator = GetComponent<Animator>();
+        animator = GetComponent<NetworkAnimator>();
         currentTime = dashCol;
     }
 
     private void Update()
     {
+        if (!IsOwner)
+        {
+            return;
+        }
+        
         GetInput();
         currentTime += Time.deltaTime;
     }
 
     private void FixedUpdate()
     {
+        if (!IsOwner)
+        {
+            return;
+        }
+        
         MovePlayer();
         PlayerRotate();
     }
@@ -58,7 +66,7 @@ public class PlayerMove : MonoBehaviour
     private void Dash()
     {
         if (dashCol > currentTime) return; 
-        animator.SetTrigger("Dash");
+        animator.Animator.SetTrigger("Dash");
         playerRigid.velocity = transform.forward * dashRange;
         currentTime = 0f;
     }
@@ -68,8 +76,8 @@ public class PlayerMove : MonoBehaviour
         moveSpeed = isRun ? runSpeed : walkSpeed;
         moveDir = new Vector3(horizontalMove, 0f, verticalMove).normalized;
         
-        animator.SetBool("isMove", moveDir != new Vector3(0f, 0f, 0f));
-        animator.SetBool("isRun", isRun);
+        animator.Animator.SetBool("isMove", moveDir != new Vector3(0f, 0f, 0f));
+        animator.Animator.SetBool("isRun", isRun);
         
         playerRigid.MovePosition(transform.position + moveDir * (moveSpeed * Time.fixedDeltaTime));
     }

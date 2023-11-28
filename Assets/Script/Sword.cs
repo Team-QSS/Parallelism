@@ -1,12 +1,6 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using Cinemachine;
-using Unity.VisualScripting;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.Serialization;
-using UnityEngine.UIElements;
 
 public class Sword : MonoBehaviour
 {
@@ -88,6 +82,7 @@ public class Sword : MonoBehaviour
         }
     }
 
+    //선택 시 활성화
     public void Setting(bool enter)
     {
         if (enter)
@@ -101,12 +96,14 @@ public class Sword : MonoBehaviour
         }
     }
 
+    //Attacker에 붙이기
     private void SetStuck(bool stuck)
     {
         IsStuck = stuck;
         attacker.SetInnerSword();
     }
 
+    //Player2 - Attacker에 붙어있을 때 따라가는 기능
     private void AttackerTrace()
     {
         float delta = Time.smoothDeltaTime;
@@ -121,6 +118,7 @@ public class Sword : MonoBehaviour
         transform.position = Vector3.Slerp(transform.position, position, traceMoveSpeed * delta);
     }
 
+    //붙어있을 때 정보 셋팅
     public void SetInnerProperty(int i, int l)
     {
         index  = i;
@@ -259,6 +257,7 @@ public class Sword : MonoBehaviour
         isSkill             = false;
     }
 
+    //적중 시
     private void OnTriggerEnter(Collider other)
     {
         if (isThrow)
@@ -273,7 +272,6 @@ public class Sword : MonoBehaviour
             var hit = other.GetComponent<IHit>();
             if (hit != null)
             {
-                attacker.Hit();
                 hit.Hit(damage);
             }
         }

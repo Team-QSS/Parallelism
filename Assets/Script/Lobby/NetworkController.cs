@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using QFSW.QC;
@@ -13,17 +14,17 @@ using Random = UnityEngine.Random;
 
 public class NetworkController : MonoBehaviour
 {
-    private LocalPlayer m_LocalUser;
-    private LocalLobby m_LocalLobby;
+    public LocalPlayer m_LocalUser;
+    public LocalLobby m_LocalLobby;
     
     //public const string GAMEMODE = "gameMode";
 
-    private const string key_RelayCode = nameof(LocalLobby.RelayCode);
-    private const string key_LobbyState = nameof(LocalLobby.LocalLobbyState);
+    public const string key_RelayCode = nameof(LocalLobby.RelayCode);
+    public const string key_LobbyState = nameof(LocalLobby.LocalLobbyState);
 
-    private const string key_Displayname = nameof(LocalPlayer.DisplayName);
-    private const string key_Userstatus = nameof(LocalPlayer.UserStatus);
-    private const string key_Team = nameof(LocalPlayer.Team);
+    public const string key_Displayname = nameof(LocalPlayer.DisplayName);
+    public const string key_Userstatus = nameof(LocalPlayer.UserStatus);
+    public const string key_Team = nameof(LocalPlayer.Team);
     
     private Lobby m_CurrentLobby;
     private LobbyEventCallbacks m_LobbyEventCallbacks = new();
@@ -47,9 +48,11 @@ public class NetworkController : MonoBehaviour
     public bool IsExit;
     
     [SerializeField] private SpawnLocation _spawnLocation;
+    [SerializeField] private NGOController _ngoController;
     
     private async void Awake()
     {
+        DontDestroyOnLoad(gameObject);
         m_LocalUser = new LocalPlayer("", 0, false, "LocalPlayer");
         m_LocalLobby = new LocalLobby { LocalLobbyState = { Value = LobbyState.Lobby } };
 
@@ -71,17 +74,27 @@ public class NetworkController : MonoBehaviour
         }
         
     }
-
-    private bool OnAppQuit()
+    
+    private bool Application_wantsToQuit()
     {
-        Quit();
-        return true;
+        var canQuit = m_CurrentLobby == null;
+        if (!canQuit)
+        {
+            StartCoroutine(LeaveBeforeQuit());
+        }
+        return canQuit;
     }
 
-    private async void Quit()
+    private IEnumerator LeaveBeforeQuit()
     {
-        IsExit = true;
-        await KickPlayer();
+        var task = KickPlayer();
+        yield return new WaitUntil(() => task.IsCompleted);
+        Application.Quit();
+    }
+    
+    private bool OnAppQuit()
+    {
+        return true;
     }
 
     private async void StartHeartBeat()
@@ -150,11 +163,11 @@ public class NetworkController : MonoBehaviour
             
             Debug.Log("update!!");
             
-            m_CurrentLobby = await LobbyService.Instance.GetLobbyAsync(m_CurrentLobby.Id);
-            if (m_CurrentLobby.Players.Count != m_LocalLobby.LocalPlayers.Count)
-            {
-                LobbyConverters.RemoteToLocal(m_CurrentLobby,m_LocalLobby);
-            }
+            m_CurrentLobby = await LobbyService.Instance.GetLobbyAsync(m_CurrentLobby.Id); 
+            LobbyConverters.RemoteToLocal(m_CurrentLobby,m_LocalLobby);
+            
+            Check();
+            
             _spawnLocation.OnPlayerChanged();
         }
         catch (LobbyServiceException e)
@@ -177,22 +190,7 @@ public class NetworkController : MonoBehaviour
             return default;
         }
     }
-
-    private async Task<JoinAllocation> joinRelay(string joinCode)
-    {
-        try
-        {
-            Debug.Log("join " + joinCode);
-            JoinAllocation joinAllocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
-            return joinAllocation;
-        }
-        catch (RelayServiceException e)
-        {
-            Debug.LogError(e);
-            return default;
-        }
-    }
-
+    
     private Dictionary<string, PlayerDataObject> CreateInitialPlayerData(LocalPlayer user)
     {
         var data = new Dictionary<string, PlayerDataObject>();
@@ -210,7 +208,7 @@ public class NetworkController : MonoBehaviour
     }
     
     [Command]
-    public async void CreateLobby(string lobbyName, bool isPrivate)
+    public async void CreateLobby(string lobbyName = "a", bool isPrivate = false)
     {
         try
         {
@@ -223,13 +221,10 @@ public class NetworkController : MonoBehaviour
             await m_CreateCooldown.QueueUntilCooldown();
             
             const int maxPlayers = 4;
-            Allocation allocation = await AllocateRelay();
-            var relayJoinCode = await GetRelayJoinCode(allocation);
             m_CurrentLobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, maxPlayers, new CreateLobbyOptions
             {
                 IsPrivate = isPrivate,
-                Player = new Player(id: AuthenticationService.Instance.PlayerId, data: CreateInitialPlayerData(m_LocalUser)),
-                Data = new Dictionary<string, DataObject> { {key_RelayCode, new DataObject(DataObject.VisibilityOptions.Member, relayJoinCode)} }
+                Player = new Player(id: AuthenticationService.Instance.PlayerId, data: CreateInitialPlayerData(m_LocalUser))
             });
             
             await UpdatePlayerDataAsync(new Dictionary<string, string> { { key_Userstatus, ((int)PlayerStatus.Lobby).ToString()} }) ;
@@ -268,32 +263,50 @@ public class NetworkController : MonoBehaviour
     
     public async Task UpdateLobbyDataAsync(Dictionary<string, string> data)
     {
-        if (m_CurrentLobby == null)
-            return;
-
-        Dictionary<string, DataObject> dataCurr = m_CurrentLobby.Data ?? new Dictionary<string, DataObject>();
-
-        var shouldLock = false;
-        foreach (var dataNew in data)
+        try
         {
-            DataObject dataObj = new DataObject(DataObject.VisibilityOptions.Public, dataNew.Value);
-            dataCurr[dataNew.Key] = dataObj;
+            Debug.Log("update lobby");
+            if (m_CurrentLobby == null)
+                return;
 
-            if (dataNew.Key == "LocalLobbyState")
+            var dataCurr = m_CurrentLobby.Data ?? new Dictionary<string, DataObject>();
+
+            var shouldLock = false;
+            foreach (var (key, value) in data)
             {
-                Enum.TryParse(dataNew.Value, out LobbyState lobbyState);
-                shouldLock = lobbyState != LobbyState.Lobby;
+                if (key == key_RelayCode)
+                {
+                    DataObject dataObj = new DataObject(DataObject.VisibilityOptions.Member, value);
+                    dataCurr[key] = dataObj;
+                }
+                else
+                {
+                    DataObject dataObj = new DataObject(DataObject.VisibilityOptions.Public, value);
+                    dataCurr[key] = dataObj;
+
+                }
+                if (key == key_LobbyState)
+                {
+                    Enum.TryParse(value, out LobbyState lobbyState);
+                    shouldLock = lobbyState != LobbyState.Lobby;
+                }
             }
-        }
 
-        if (m_UpdateLobbyCooldown.TaskQueued)
-            return;
-        await m_UpdateLobbyCooldown.QueueUntilCooldown();
+            if (m_UpdateLobbyCooldown.TaskQueued)
+            {
+                return;
+            }
+            await m_UpdateLobbyCooldown.QueueUntilCooldown();
 
-        UpdateLobbyOptions updateOptions = new UpdateLobbyOptions { Data = dataCurr, IsLocked = shouldLock };
-        m_CurrentLobby = await LobbyService.Instance.UpdateLobbyAsync(m_CurrentLobby.Id, updateOptions);
+            UpdateLobbyOptions updateOptions = new UpdateLobbyOptions { Data = dataCurr, IsLocked = shouldLock };
+            m_CurrentLobby = await LobbyService.Instance.UpdateLobbyAsync(m_CurrentLobby.Id, updateOptions);
         
-        LobbyConverters.RemoteToLocal(m_CurrentLobby, m_LocalLobby);
+            LobbyConverters.RemoteToLocal(m_CurrentLobby, m_LocalLobby);
+        }
+        catch (LobbyServiceException e)
+        {
+            Debug.LogError(e);
+        }
     }
     
     public async Task UpdatePlayerDataAsync(Dictionary<string, string> data)
@@ -304,7 +317,7 @@ public class NetworkController : MonoBehaviour
             Debug.LogError("lobby is null");
             return;
         }
-
+        
         var playerId = AuthenticationService.Instance.PlayerId;
         var dataCurr = new Dictionary<string, PlayerDataObject>();
         foreach (var (key, value) in data)
@@ -315,7 +328,7 @@ public class NetworkController : MonoBehaviour
 
         if (m_UpdatePlayerCooldown.TaskQueued)
         {
-            Debug.LogError("why");
+            Debug.LogError("too many request");
             return;
         }
         await m_UpdatePlayerCooldown.QueueUntilCooldown();
@@ -345,6 +358,80 @@ public class NetworkController : MonoBehaviour
         }
         
         _spawnLocation.OnPlayerChanged();
+    }
+    
+    [Command]
+    private void StartGame()
+    {
+        if (!IsLobbyHost())
+        {
+            return;
+        }
+        
+        var readyCount = 0;
+        
+        foreach (var plr in m_LocalLobby.LocalPlayers)
+        {
+            if (plr.UserStatus.Value == PlayerStatus.Ready)
+            {
+                readyCount++;
+            }
+        }
+
+        //m_LocalLobby.PlayerCount
+        if (readyCount == 4)
+        {
+            Game();
+        }
+    }
+
+    private async void Game()
+    {
+        Allocation allocation = await AllocateRelay();
+        var relayJoinCode = await GetRelayJoinCode(allocation);
+        m_LocalLobby.RelayCode.Value = relayJoinCode;
+        
+        m_LocalLobby.LocalLobbyState.Value = LobbyState.InGame;
+        await UpdateLobbyDataAsync(LobbyConverters.LocalToRemoteLobbyData(m_LocalLobby));
+        _ngoController.StartHost(allocation);
+        
+    }
+    
+    private async void Check()
+    {
+        if (m_LocalLobby.LocalLobbyState.Value == LobbyState.InGame && !IsLobbyHost() && m_LocalUser.UserStatus.Value != PlayerStatus.Connecting && m_LocalUser.UserStatus.Value != PlayerStatus.InGame)
+        {
+            _ngoController.StartClient(m_LocalLobby.RelayCode.Value);
+        }
+
+        if (m_LocalLobby.LocalLobbyState.Value == LobbyState.FastSetting)
+        {
+            if (m_LocalUser.Index.Value < 2)
+            {
+                await ChangeTeam();
+            }
+            else
+            {
+                await ChangeTeam("blue");
+            }
+
+            await PlayerReady();
+
+            if (!IsLobbyHost())
+            {
+                return;
+            }
+
+            foreach (var plr in m_LocalLobby.LocalPlayers)
+            {
+                if (plr.Team.Value == Team.None || plr.UserStatus.Value != PlayerStatus.Ready)
+                {
+                    return;
+                }
+            }
+
+            await UpdateLobbyDataAsync(new Dictionary<string, string> { { key_LobbyState, ((int)LobbyState.Lobby).ToString() } });
+        }
     }
     
     [Command]
@@ -595,6 +682,20 @@ public class NetworkController : MonoBehaviour
             } 
         } });
     }
+
+    [Command]
+    private async void FastSetting()
+    {
+        try
+        {
+            await UpdateLobbyDataAsync(new Dictionary<string, string> { { key_LobbyState, ((int)LobbyState.FastSetting).ToString()} });
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+        }
+        
+    }
     
     public async Task BindLocalLobbyToRemote(string lobbyID, LocalLobby localLobby)
         {
@@ -789,6 +890,7 @@ public class NetworkController : MonoBehaviour
 
                 if (changes.PlayerData.Changed)
                     PlayerDataChanged();
+                
                 return;
 
                 void PlayerDataChanged()
