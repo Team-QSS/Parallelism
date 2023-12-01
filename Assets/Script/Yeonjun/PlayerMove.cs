@@ -1,3 +1,4 @@
+using System.Collections;
 using Unity.Netcode;
 using Unity.Netcode.Components;
 using UnityEngine;
@@ -14,11 +15,11 @@ public class PlayerMove : NetworkBehaviour
 
     private bool isRun;
     private bool isMove;
+    private bool afterDash, isDash;
     
     private float horizontalMove, verticalMove;
     private Quaternion lookDir;
     private Vector3 moveDir;
-    private Vector3 dashPoint;
     
     private Rigidbody playerRigid;
     private NetworkAnimator animator;
@@ -32,10 +33,7 @@ public class PlayerMove : NetworkBehaviour
 
     private void Update()
     {
-        if (!IsOwner)
-        {
-            return;
-        }
+        if (!IsOwner) return;
         
         GetInput();
         currentTime += Time.deltaTime;
@@ -43,10 +41,8 @@ public class PlayerMove : NetworkBehaviour
 
     private void FixedUpdate()
     {
-        if (!IsOwner)
-        {
-            return;
-        }
+        if (!IsOwner) return;
+
         
         MovePlayer();
         PlayerRotate();
@@ -57,24 +53,37 @@ public class PlayerMove : NetworkBehaviour
         verticalMove = Input.GetAxisRaw("Vertical");
         horizontalMove = Input.GetAxisRaw("Horizontal");
         
-        if (Input.GetKeyDown(KeyCode.LeftShift)) isRun = true;
+        if (Input.GetKeyDown(KeyCode.LeftShift) && !isDash) isRun = true;
         if (Input.GetKeyUp(KeyCode.LeftShift)) isRun = false;
         
-        if (Input.GetKeyDown(KeyCode.Space)) Dash();
+        if (Input.GetKeyDown(KeyCode.Space) && !afterDash) Dash();
     }
 
     private void Dash()
     {
-        if (dashCol > currentTime) return; 
+        if (dashCol > currentTime) return;
+        currentTime = 0f;
+        isRun = false;
         animator.Animator.SetTrigger("Dash");
         playerRigid.velocity = transform.forward * dashRange;
-        currentTime = 0f;
+        StartCoroutine(Penalty());
+    }
+
+    private IEnumerator Penalty()
+    {
+        isDash = true;
+        yield return new WaitForSeconds(dashRange / 5f);
+        isDash = false;
+        afterDash = true;
+        moveSpeed = walkSpeed / 2;
+        yield return new WaitForSeconds(dashCol);
+        afterDash = false;
     }
 
     private void MovePlayer()
     {
-        moveSpeed = isRun ? runSpeed : walkSpeed;
-        moveDir = new Vector3(horizontalMove, 0f, verticalMove).normalized;
+        if(!afterDash) moveSpeed = isRun ? runSpeed : walkSpeed;
+        if(!isDash) moveDir = new Vector3(horizontalMove, 0f, verticalMove).normalized;
         
         animator.Animator.SetBool("isMove", moveDir != new Vector3(0f, 0f, 0f));
         animator.Animator.SetBool("isRun", isRun);
