@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerState : MonoBehaviour
+public class PlayerState : MonoBehaviour, IHit
 {
     [SerializeField] private float hp;
     [SerializeField] private float damColTime;
@@ -26,13 +26,13 @@ public class PlayerState : MonoBehaviour
 
     private void Die()
     {
-        //
+        
     }
 
-    public void Attacked(float dam)
+    public void Hit(float damage)
     {
         if (currentTimeForDam < damColTime) return;
-        hp -= dam;
+        hp -= damage;
         currentTimeForDam = 0f;
     }
 
