@@ -28,7 +28,7 @@ public class Attacker : NetworkBehaviour
                 var sw = sword.GetComponent<Sword>();
                 sw.attacker = this;
                 sw.camTr = transform.GetComponentInChildren<CinemachineVirtualCamera>().transform;
-                sw.enabled = true;
+                //sw.enabled = true;
                 
                 sword.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId);
                 
