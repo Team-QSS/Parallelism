@@ -267,7 +267,9 @@ public class NetworkController : MonoBehaviour
         {
             Debug.Log("update lobby");
             if (m_CurrentLobby == null)
+            {
                 return;
+            }
 
             var dataCurr = m_CurrentLobby.Data ?? new Dictionary<string, DataObject>();
 
@@ -314,7 +316,7 @@ public class NetworkController : MonoBehaviour
         Debug.Log("update");
         if (m_CurrentLobby == null)
         {
-            Debug.LogError("lobby is null");
+            Debug.LogWarning("lobby is null");
             return;
         }
         
@@ -328,7 +330,7 @@ public class NetworkController : MonoBehaviour
 
         if (m_UpdatePlayerCooldown.TaskQueued)
         {
-            Debug.LogError("too many request");
+            Debug.LogWarning("too many request");
             return;
         }
         await m_UpdatePlayerCooldown.QueueUntilCooldown();
@@ -377,8 +379,7 @@ public class NetworkController : MonoBehaviour
                 readyCount++;
             }
         }
-
-        //m_LocalLobby.PlayerCount
+        
         if (readyCount == 4)
         {
             Game();
@@ -408,11 +409,11 @@ public class NetworkController : MonoBehaviour
         {
             if (m_LocalUser.Index.Value < 2)
             {
-                await ChangeTeam();
+                await ChangeTeam("red", true);
             }
             else
             {
-                await ChangeTeam("blue");
+                await ChangeTeam("blue",true);
             }
 
             await PlayerReady();
@@ -479,11 +480,11 @@ public class NetworkController : MonoBehaviour
         }
         catch (LobbyServiceException e)
         {
-            Debug.LogError(e);
+            Debug.Log(e);
         }
         catch (Exception e)
         {
-            Debug.LogError(e);
+            Debug.Log(e);
         }
     }
 
@@ -664,23 +665,39 @@ public class NetworkController : MonoBehaviour
     }
     
     [Command]
-    private async Task PlayerReady(bool ready = true)
+    private async Task PlayerReady(bool ready = true, bool withoutUpdate = false)
     {
-        if (m_CurrentLobby == null) return;
-        await UpdatePlayerDataAsync(new Dictionary<string, string> { { key_Userstatus, ready ? ((int)PlayerStatus.Ready).ToString() : ((int)PlayerStatus.Lobby).ToString()} }) ;
+        if (m_CurrentLobby == null)
+        {
+            return;
+        }
+
+        if (withoutUpdate)
+        {
+            return;
+        }
+
+        m_LocalUser.UserStatus.Value = ready ? PlayerStatus.Ready : PlayerStatus.Lobby;
+        await UpdatePlayerDataAsync(LobbyConverters.LocalToRemoteUserData(m_LocalUser)) ;
     }
     
     [Command]
-    private async Task ChangeTeam(string team = "red")
+    private async Task ChangeTeam(string team = "red", bool withoutUpdate = false)
     {
         if (m_CurrentLobby == null) return;
-        await UpdatePlayerDataAsync(new Dictionary<string, string> { { key_Team, team switch 
-            {
-            "red" => ((int)Team.Red).ToString(),
-            "blue" => ((int)Team.Blue).ToString(),
-            _ => ((int)Team.None).ToString()
-            } 
-        } });
+        m_LocalUser.Team.Value = team switch
+        {
+            "red" => Team.Red,
+            "blue" => Team.Blue,
+            _ => Team.None
+        };
+
+        if (withoutUpdate)
+        {
+            return;
+        }
+        
+        await UpdatePlayerDataAsync(LobbyConverters.LocalToRemoteUserData(m_LocalUser));
     }
 
     [Command]
@@ -964,7 +981,7 @@ public class NetworkController : MonoBehaviour
         private int m_TaskCounter;
 
         //(If you're still getting rate limit errors, try increasing the pingBuffer)
-        public ServiceRateLimiter(int callTimes, float coolDown, int pingBuffer = 100)
+        public ServiceRateLimiter(int callTimes, float coolDown, int pingBuffer = 200)
         {
             m_ServiceCallTimes = callTimes;
             m_TaskCounter = m_ServiceCallTimes;

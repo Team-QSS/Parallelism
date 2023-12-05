@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Cinemachine;
+using Unity.Mathematics;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -15,28 +17,57 @@ public class Attacker : NetworkBehaviour
 
     private void Awake()
     {
-        //Resources안쓰고 SerializeField로 바꿔도 문제 안생김?
-        //폴더 복잡해서 하나로 합치고 싶음
-        var swordPrefab = Resources.Load<Sword>("Sword");
-        
-        for (int i = 0; i < swordCount; i++)
+        Debug.Log("awake");
+        if (NetworkManager.Singleton.IsHost)
         {
-            var sword = Instantiate(swordPrefab);
-            sword.attacker = this;
-            Swords.Add(sword);
+            var swordPrefab = Resources.Load<Sword>("Sword");
+            
+            for (var i = 0; i < swordCount; i++)
+            {
+                var sword = Instantiate(swordPrefab,transform.position,quaternion.identity);
+                var sw = sword.GetComponent<Sword>();
+                sw.attacker = this;
+                sw.camTr = transform.GetComponentInChildren<CinemachineVirtualCamera>().transform;
+                sw.enabled = true;
+                
+                sword.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId);
+                
+            }
         }
+        
+        if (IsOwner)
+        {
+            SetInnerSword();
+            Select(0);
+            
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible   = false;
+        }
+    }
 
-        SetInnerSword();
-        Select(0);
-
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible   = false;
+    [ClientRpc]
+    private void SwordClientRpc(int HashCode)
+    {
+        var swords = GameObject.FindGameObjectsWithTag("Sword");
+        foreach (var sword in swords)
+        {
+            if (sword.GetComponent<NetworkObject>().IsOwner)
+            {
+                var sw = sword.GetComponent<Sword>();
+                Swords.Add(sw);
+            }
+        }
     }
 
     private void Update()
     {
+        if (moverTransform is null || !IsOwner || Swords.Count == 0)
+        {
+            return;
+        }
+        
         float smoothDelta = Time.smoothDeltaTime;
-
+        
         MoverTrace(smoothDelta);
         CameraRotate(smoothDelta);
         

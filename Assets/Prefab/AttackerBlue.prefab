@@ -11,9 +11,10 @@ GameObject:
   - component: {fileID: 8913830157889013625}
   - component: {fileID: 3330655293827735351}
   - component: {fileID: 3409565639326611659}
+  - component: {fileID: -302457414262078358}
   m_Layer: 0
-  m_Name: Attacker
-  m_TagString: Untagged
+  m_Name: AttackerBlue
+  m_TagString: AttackerPlayerBlue
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -48,7 +49,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d6b8bfbcdb7766418728605b1ea7a98, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moverTransform: {fileID: 0}
+  moverTransform: {fileID: 8284442772237336402, guid: 46e5ff5a68663e44e936f59e34cbd63a,
+    type: 3}
   mouseSensitivity: {x: 400, y: 250}
   swordCount: 2
 --- !u!114 &3409565639326611659
@@ -71,6 +73,36 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &-302457414262078358
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1526951569061613522}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df2868252ab5c4d1da357e8f11f1b524, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SyncPositionX: 0
+  SyncPositionY: 0
+  SyncPositionZ: 0
+  SyncRotAngleX: 1
+  SyncRotAngleY: 1
+  SyncRotAngleZ: 1
+  SyncScaleX: 0
+  SyncScaleY: 0
+  SyncScaleZ: 0
+  PositionThreshold: 0.001
+  RotAngleThreshold: 0.01
+  ScaleThreshold: 0.01
+  UseQuaternionSynchronization: 0
+  UseQuaternionCompression: 0
+  UseHalfFloatPrecision: 0
+  InLocalSpace: 0
+  Interpolate: 1
+  SlerpPosition: 0
 --- !u!1 &1952313823998856767
 GameObject:
   m_ObjectHideFlags: 0

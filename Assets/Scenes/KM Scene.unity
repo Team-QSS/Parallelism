@@ -433,8 +433,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e43209b3cf6c0a6468db4cf8828ce423, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mover: {fileID: 3338536401257098634, guid: 44e50f1bbde0d394fabdd0b741dea328, type: 3}
-  attacker: {fileID: 1526951569061613522, guid: cd720734f1091d94c8314bf8d830a596,
+  moverRed: {fileID: 3338536401257098634, guid: 44e50f1bbde0d394fabdd0b741dea328,
+    type: 3}
+  attackerRed: {fileID: 1526951569061613522, guid: cd720734f1091d94c8314bf8d830a596,
+    type: 3}
+  moverBlue: {fileID: 3338536401257098634, guid: 46e5ff5a68663e44e936f59e34cbd63a,
+    type: 3}
+  attackerBlue: {fileID: 1526951569061613522, guid: f60b69b20391d914a990d85be7864d8c,
     type: 3}
   _networkController: {fileID: 134616477}
 --- !u!1 &232648248

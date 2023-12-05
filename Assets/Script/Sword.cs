@@ -1,8 +1,9 @@
 using System;
 using System.Collections;
+using Unity.Netcode;
 using UnityEngine;
 
-public class Sword : MonoBehaviour
+public class Sword : NetworkBehaviour
 {
     [HideInInspector] public Attacker        attacker;
     private                  BoxCollider     boxCollider;
@@ -46,7 +47,7 @@ public class Sword : MonoBehaviour
     private                  Coroutine throwCoroutine;
 
     [SerializeField] private GameObject testAnchor;
-    [SerializeField] private Transform  camTr;
+    public Transform  camTr;
 
     private void Awake()
     {
@@ -58,7 +59,7 @@ public class Sword : MonoBehaviour
 
     private void Start()
     {
-        camTr  = Camera.main.transform;
+        //camTr  = Camera.main.transform;
     }
 
     private void OnEnable()
@@ -76,7 +77,7 @@ public class Sword : MonoBehaviour
 
     private void Update()
     {
-        if (IsStuck)
+        if (IsStuck || IsOwner)
         {
             AttackerTrace();
         }
@@ -109,7 +110,7 @@ public class Sword : MonoBehaviour
         float delta = Time.smoothDeltaTime;
         float traceMoveSpeed = 30;
         float traceRotateSpeed = 30;
-
+        
         var rotation = attacker.transform.rotation *
                        Quaternion.AngleAxis((float)index / length * 360, new Vector3(0, 1, 0));
         var position = rotation * Vector3.forward * innerDistance + attacker.transform.position;
