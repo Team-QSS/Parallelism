@@ -135,40 +135,43 @@ public class NGOController : NetworkBehaviour
         
         clientTeams = clientTeams.OrderBy(x => Random.Range(0,100)).ToDictionary(item => item.Key, item => item.Value);
         
+        GameObject objR = null;
+        GameObject objB = null;
+        
         foreach (var (clientid, team) in clientTeams)
         {
             var isRedTeam = team == Team.Red;
             GameObject selectedPrefab = moverRed;
-            
             if (isRedTeam)
             {
                 if (red)
                 {
-                    selectedPrefab = moverRed;
+                    selectedPrefab = Instantiate(attackerRed);
+                    selectedPrefab.GetComponent<Attacker>().moverTransform = objR.transform;
+                    selectedPrefab.GetComponent<Attacker>().enabled = true;
+                    selectedPrefab.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientid);
                 }
                 else
                 {
-                    selectedPrefab = attackerRed;
-                    attackerRed.GetComponent<Attacker>().moverTransform = moverRed.transform;
-                    attackerRed.GetComponent<Attacker>().enabled = true;
+                    objR = Instantiate(moverRed);
+                    objR.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientid);
                 }
             }
             else
             {
                 if (blue)
                 {
-                    selectedPrefab = moverBlue;
+                    selectedPrefab = Instantiate(attackerBlue);
+                    selectedPrefab.GetComponent<Attacker>().moverTransform = objB.transform;
+                    selectedPrefab.GetComponent<Attacker>().enabled = true;
+                    selectedPrefab.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientid);
                 }
                 else
                 {
-                    selectedPrefab = attackerBlue;
-                    attackerBlue.GetComponent<Attacker>().moverTransform = moverBlue.transform;
-                    attackerBlue.GetComponent<Attacker>().enabled = true;
+                    objB = Instantiate(moverBlue);
+                    objB.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientid);
                 }
             }
-            
-            var obj = Instantiate(selectedPrefab);
-            obj.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientid);
             
             if (isRedTeam)
             {
