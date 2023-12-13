@@ -56,7 +56,7 @@ public class NetworkController : MonoBehaviour
         m_LocalUser = new LocalPlayer("", 0, false, "LocalPlayer");
         m_LocalLobby = new LocalLobby { LocalLobbyState = { Value = LobbyState.Lobby } };
 
-        Application.wantsToQuit += OnAppQuit;
+        Application.wantsToQuit += Application_wantsToQuit;
         
         if (UnityServices.State != ServicesInitializationState.Initialized)
         {
@@ -77,26 +77,21 @@ public class NetworkController : MonoBehaviour
     
     private bool Application_wantsToQuit()
     {
-        var canQuit = m_CurrentLobby == null;
-        if (!canQuit)
+        if (m_CurrentLobby != null)
         {
             StartCoroutine(LeaveBeforeQuit());
         }
-        return canQuit;
+        return m_CurrentLobby == null;
     }
 
     private IEnumerator LeaveBeforeQuit()
     {
+        Debug.Log("leave seq");
         var task = KickPlayer();
         yield return new WaitUntil(() => task.IsCompleted);
         Application.Quit();
     }
     
-    private bool OnAppQuit()
-    {
-        return true;
-    }
-
     private async void StartHeartBeat()
     {
         while (m_CurrentLobby != null)
