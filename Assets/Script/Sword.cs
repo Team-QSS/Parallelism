@@ -1,10 +1,11 @@
 using System;
 using System.Collections;
+using Unity.Netcode;
 using UnityEngine;
 
-public class Sword : MonoBehaviour
+public class Sword : NetworkBehaviour
 {
-    [HideInInspector] public Attacker        attacker;
+    public                   Attacker        attacker;
     private                  BoxCollider     boxCollider;
     private                  Animator        anim;
     private static readonly  int             AttackTrigger = Animator.StringToHash("Attack");
@@ -46,7 +47,7 @@ public class Sword : MonoBehaviour
     private                  Coroutine throwCoroutine;
 
     [SerializeField] private GameObject testAnchor;
-    [SerializeField] private Transform  camTr;
+    public Transform  camTr;
 
     private void Awake()
     {
@@ -54,11 +55,6 @@ public class Sword : MonoBehaviour
         boxCollider = GetComponentInChildren<BoxCollider>();
 
         testAnchor.transform.parent = null;
-    }
-
-    private void Start()
-    {
-        camTr  = Camera.main.transform;
     }
 
     private void OnEnable()
@@ -76,7 +72,7 @@ public class Sword : MonoBehaviour
 
     private void Update()
     {
-        if (IsStuck)
+        if (IsStuck && IsOwner)
         {
             AttackerTrace();
         }
@@ -106,10 +102,15 @@ public class Sword : MonoBehaviour
     //Player2 - Attacker에 붙어있을 때 따라가는 기능
     private void AttackerTrace()
     {
+        if (index == 0 || length == 0)
+        {
+            Debug.LogWarning("error sword");
+            return;
+        }
         float delta = Time.smoothDeltaTime;
         float traceMoveSpeed = 30;
         float traceRotateSpeed = 30;
-
+        
         var rotation = attacker.transform.rotation *
                        Quaternion.AngleAxis((float)index / length * 360, new Vector3(0, 1, 0));
         var position = rotation * Vector3.forward * innerDistance + attacker.transform.position;

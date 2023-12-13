@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Cinemachine;
+using Unity.Mathematics;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -10,33 +12,65 @@ public class Attacker : NetworkBehaviour
 
     [Header("Sword")] [SerializeField] private int swordCount;
 
-    private static readonly List<Sword> Swords = new ();
+    public readonly List<Sword> Swords = new ();
     private                 Sword       currentSword;
 
-    private void Awake()
+    private void Start()
+    
     {
-        //Resources안쓰고 SerializeField로 바꿔도 문제 안생김?
-        //폴더 복잡해서 하나로 합치고 싶음
-        var swordPrefab = Resources.Load<Sword>("Sword");
-        
-        for (int i = 0; i < swordCount; i++)
+        if (NetworkManager.Singleton.IsServer)
         {
-            var sword = Instantiate(swordPrefab);
-            sword.attacker = this;
-            Swords.Add(sword);
+            var swordPrefab = Resources.Load<Sword>("Sword");
+            
+            for (var i = 0; i < swordCount; i++)
+            {
+                var sword = Instantiate(swordPrefab,Vector3.zero,quaternion.identity);
+                sword.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId);
+            }
         }
 
-        SetInnerSword();
-        Select(0);
+        var swords = GameObject.FindGameObjectsWithTag("Sword");
+        foreach (var sword in swords)
+        {
+            if (sword.GetComponent<NetworkObject>().OwnerClientId == GetComponent<NetworkObject>().OwnerClientId)
+            {
+                var sw = sword.GetComponent<Sword>();
+                sw.attacker = this;
+                sw.camTr = transform.GetComponentInChildren<CinemachineVirtualCamera>().transform;
+                sw.enabled = true;
+                Swords.Add(sw);
+            }
+        }
+        
+        if (GetComponent<NetworkObject>().IsOwner)
+        {
+            
+            if (Swords.Count != 0)
+            {
+                SetInnerSword();
+                Select(0);
+            }
 
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible   = false;
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible   = false;
+        }
     }
-
+    
     private void Update()
     {
+        if (!IsOwner)
+        {
+            return;
+        }
+        
+        if (moverTransform is null || Swords.Count == 0)
+        {
+            Debug.Log("error attacker");
+            return;
+        }
+        
         float smoothDelta = Time.smoothDeltaTime;
-
+        
         MoverTrace(smoothDelta);
         CameraRotate(smoothDelta);
         

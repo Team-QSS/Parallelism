@@ -8,16 +8,10 @@ public class SpawnLocation : MonoBehaviour
     [SerializeField] private NetworkController _networkController;
     [SerializeField] private GameObject LobbyPlayerObj;
 
-    private void Awake()
-    {
-        DontDestroyOnLoad(gameObject);
-    }
-
     public void OnPlayerChanged()
     {
-        if (SceneManager.GetActiveScene().ToString() == "Yeonjun Scene")
+        if (SceneManager.GetActiveScene().name == "Yeonjun Scene")
         {
-            Destroy(gameObject);
             return;
         }
         var players = _networkController.GetPlayers();
@@ -42,12 +36,23 @@ public class SpawnLocation : MonoBehaviour
     
     public void Clear()
     {
-        foreach (Transform child in transform)
+        try
         {
-            foreach (Transform c in child)
+            if (SceneManager.GetActiveScene().name == "Yeonjun Scene")
             {
-                Destroy(c.gameObject);
+                return;
             }
+            foreach (Transform child in transform)
+            {
+                foreach (Transform c in child)
+                {
+                    Destroy(c.gameObject);
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // ignored
         }
     }
 }

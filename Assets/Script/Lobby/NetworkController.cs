@@ -163,7 +163,7 @@ public class NetworkController : MonoBehaviour
             
             Debug.Log("update!!");
             
-            m_CurrentLobby = await LobbyService.Instance.GetLobbyAsync(m_CurrentLobby.Id); 
+            m_CurrentLobby = await LobbyService.Instance.GetLobbyAsync(m_CurrentLobby.Id);
             LobbyConverters.RemoteToLocal(m_CurrentLobby,m_LocalLobby);
             
             Check();
@@ -267,7 +267,9 @@ public class NetworkController : MonoBehaviour
         {
             Debug.Log("update lobby");
             if (m_CurrentLobby == null)
+            {
                 return;
+            }
 
             var dataCurr = m_CurrentLobby.Data ?? new Dictionary<string, DataObject>();
 
@@ -314,7 +316,7 @@ public class NetworkController : MonoBehaviour
         Debug.Log("update");
         if (m_CurrentLobby == null)
         {
-            Debug.LogError("lobby is null");
+            Debug.LogWarning("lobby is null");
             return;
         }
         
@@ -325,10 +327,10 @@ public class NetworkController : MonoBehaviour
             PlayerDataObject dataObj = new PlayerDataObject(visibility: PlayerDataObject.VisibilityOptions.Member, value: value);
             dataCurr[key] = dataObj;
         }
-
+        
         if (m_UpdatePlayerCooldown.TaskQueued)
         {
-            Debug.LogError("too many request");
+            Debug.LogWarning("too many request");
             return;
         }
         await m_UpdatePlayerCooldown.QueueUntilCooldown();
@@ -377,8 +379,7 @@ public class NetworkController : MonoBehaviour
                 readyCount++;
             }
         }
-
-        //m_LocalLobby.PlayerCount
+        
         if (readyCount == 4)
         {
             Game();
@@ -408,29 +409,27 @@ public class NetworkController : MonoBehaviour
         {
             if (m_LocalUser.Index.Value < 2)
             {
-                await ChangeTeam();
+                await ChangeTeam("red", true);
             }
             else
             {
-                await ChangeTeam("blue");
+                await ChangeTeam("blue",true);
             }
 
             await PlayerReady();
 
-            if (!IsLobbyHost())
+            if (IsLobbyHost())
             {
-                return;
-            }
-
-            foreach (var plr in m_LocalLobby.LocalPlayers)
-            {
-                if (plr.Team.Value == Team.None || plr.UserStatus.Value != PlayerStatus.Ready)
+                foreach (var plr in m_LocalLobby.LocalPlayers)
                 {
-                    return;
+                    if (plr.Team.Value == Team.None || plr.UserStatus.Value != PlayerStatus.Ready)
+                    {
+                        return;
+                    }
                 }
-            }
 
-            await UpdateLobbyDataAsync(new Dictionary<string, string> { { key_LobbyState, ((int)LobbyState.Lobby).ToString() } });
+                await UpdateLobbyDataAsync(new Dictionary<string, string> { { key_LobbyState, ((int)LobbyState.Lobby).ToString() } });
+            }
         }
     }
     
@@ -479,11 +478,13 @@ public class NetworkController : MonoBehaviour
         }
         catch (LobbyServiceException e)
         {
-            Debug.LogError(e);
+            await KickPlayer();
+            Debug.Log(e);
         }
         catch (Exception e)
         {
-            Debug.LogError(e);
+            await KickPlayer();
+            Debug.Log(e);
         }
     }
 
@@ -600,6 +601,7 @@ public class NetworkController : MonoBehaviour
             }
 
             m_CurrentLobby = null;
+            m_LocalLobby = null;
         }
         catch (LobbyServiceException e)
         {
@@ -664,23 +666,39 @@ public class NetworkController : MonoBehaviour
     }
     
     [Command]
-    private async Task PlayerReady(bool ready = true)
+    private async Task PlayerReady(bool ready = true, bool withoutUpdate = false)
     {
-        if (m_CurrentLobby == null) return;
-        await UpdatePlayerDataAsync(new Dictionary<string, string> { { key_Userstatus, ready ? ((int)PlayerStatus.Ready).ToString() : ((int)PlayerStatus.Lobby).ToString()} }) ;
+        if (m_CurrentLobby == null)
+        {
+            return;
+        }
+
+        if (withoutUpdate)
+        {
+            return;
+        }
+
+        m_LocalUser.UserStatus.Value = ready ? PlayerStatus.Ready : PlayerStatus.Lobby;
+        await UpdatePlayerDataAsync(LobbyConverters.LocalToRemoteUserData(m_LocalUser)) ;
     }
     
     [Command]
-    private async Task ChangeTeam(string team = "red")
+    private async Task ChangeTeam(string team = "red", bool withoutUpdate = false)
     {
         if (m_CurrentLobby == null) return;
-        await UpdatePlayerDataAsync(new Dictionary<string, string> { { key_Team, team switch 
-            {
-            "red" => ((int)Team.Red).ToString(),
-            "blue" => ((int)Team.Blue).ToString(),
-            _ => ((int)Team.None).ToString()
-            } 
-        } });
+        m_LocalUser.Team.Value = team switch
+        {
+            "red" => Team.Red,
+            "blue" => Team.Blue,
+            _ => Team.None
+        };
+
+        if (withoutUpdate)
+        {
+            return;
+        }
+        
+        await UpdatePlayerDataAsync(LobbyConverters.LocalToRemoteUserData(m_LocalUser));
     }
 
     [Command]
@@ -809,6 +827,17 @@ public class NetworkController : MonoBehaviour
 
                     localLobby.AddPlayer(index, newPlayer);
                 }
+                
+                List<string> list = new();
+                foreach (var plr in localLobby.LocalPlayers)
+                {
+                    if (list.Contains(plr.ID.Value))
+                    {
+                        Debug.LogWarning("id error occured! please restart game");
+                    }
+                    list.Add(plr.ID.Value);
+                }
+                
                 _spawnLocation.OnPlayerChanged();
             };
 
@@ -964,7 +993,7 @@ public class NetworkController : MonoBehaviour
         private int m_TaskCounter;
 
         //(If you're still getting rate limit errors, try increasing the pingBuffer)
-        public ServiceRateLimiter(int callTimes, float coolDown, int pingBuffer = 100)
+        public ServiceRateLimiter(int callTimes, float coolDown, int pingBuffer = 200)
         {
             m_ServiceCallTimes = callTimes;
             m_TaskCounter = m_ServiceCallTimes;
