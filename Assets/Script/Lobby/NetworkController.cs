@@ -206,6 +206,11 @@ public class NetworkController : MonoBehaviour
         data.Add(key_Team, TeamObject);
         return data;
     }
+
+    public void CreateLobbyFunc()
+    {
+        CreateLobby();
+    }
     
     [Command]
     public async void CreateLobby(string lobbyName = "a", bool isPrivate = false)
@@ -363,7 +368,7 @@ public class NetworkController : MonoBehaviour
     }
     
     [Command]
-    private void StartGame()
+    public void StartGame()
     {
         if (!IsLobbyHost())
         {
@@ -702,7 +707,7 @@ public class NetworkController : MonoBehaviour
     }
 
     [Command]
-    private async void FastSetting()
+    public async void FastSetting()
     {
         try
         {
