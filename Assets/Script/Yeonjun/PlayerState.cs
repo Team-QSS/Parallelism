@@ -5,7 +5,9 @@ using UnityEngine;
 
 public class PlayerState : MonoBehaviour, IHit
 {
-    [SerializeField] private float hp;
+    public float maxHp;
+    public float currentHp;
+    
     [SerializeField] private float damColTime;
     [SerializeField] private float helColTime;
     private float currentTimeForDam;
@@ -13,6 +15,8 @@ public class PlayerState : MonoBehaviour, IHit
 
     private void Start()
     {
+        currentHp = maxHp;
+        
         currentTimeForDam = damColTime;
         currentTimeForHel = helColTime;
     }
@@ -21,7 +25,7 @@ public class PlayerState : MonoBehaviour, IHit
     {
         currentTimeForDam += Time.deltaTime;
         currentTimeForHel += Time.deltaTime;
-        if(hp <= 0) Die();
+        if(currentHp <= 0) Die();
     }
 
     private void Die()
@@ -32,14 +36,14 @@ public class PlayerState : MonoBehaviour, IHit
     public void Hit(float damage)
     {
         if (currentTimeForDam < damColTime) return;
-        hp -= damage;
+        currentHp -= damage;
         currentTimeForDam = 0f;
     }
 
     public void Heal(float healMount)
     {
         if (currentTimeForHel < helColTime) return;
-        hp += healMount;
+        currentHp += healMount;
         currentTimeForHel = 0f;
     }
 }
