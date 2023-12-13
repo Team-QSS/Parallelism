@@ -12,57 +12,60 @@ public class Attacker : NetworkBehaviour
 
     [Header("Sword")] [SerializeField] private int swordCount;
 
-    private static readonly List<Sword> Swords = new ();
+    public readonly List<Sword> Swords = new ();
     private                 Sword       currentSword;
 
-    private void Awake()
+    private void Start()
+    
     {
-        Debug.Log("awake");
-        if (NetworkManager.Singleton.IsHost)
+        if (NetworkManager.Singleton.IsServer)
         {
             var swordPrefab = Resources.Load<Sword>("Sword");
             
             for (var i = 0; i < swordCount; i++)
             {
-                var sword = Instantiate(swordPrefab,transform.position,quaternion.identity);
+                var sword = Instantiate(swordPrefab,Vector3.zero,quaternion.identity);
+                sword.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId);
+            }
+        }
+
+        var swords = GameObject.FindGameObjectsWithTag("Sword");
+        foreach (var sword in swords)
+        {
+            if (sword.GetComponent<NetworkObject>().OwnerClientId == GetComponent<NetworkObject>().OwnerClientId)
+            {
                 var sw = sword.GetComponent<Sword>();
                 sw.attacker = this;
                 sw.camTr = transform.GetComponentInChildren<CinemachineVirtualCamera>().transform;
-                //sw.enabled = true;
-                
-                sword.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId);
-                
+                sw.enabled = true;
+                Swords.Add(sw);
             }
         }
         
-        if (IsOwner)
+        if (GetComponent<NetworkObject>().IsOwner)
         {
-            SetInnerSword();
-            Select(0);
             
+            if (Swords.Count != 0)
+            {
+                SetInnerSword();
+                Select(0);
+            }
+
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible   = false;
         }
     }
-
-    [ClientRpc]
-    private void SwordClientRpc(int HashCode)
-    {
-        var swords = GameObject.FindGameObjectsWithTag("Sword");
-        foreach (var sword in swords)
-        {
-            if (sword.GetComponent<NetworkObject>().IsOwner)
-            {
-                var sw = sword.GetComponent<Sword>();
-                Swords.Add(sw);
-            }
-        }
-    }
-
+    
     private void Update()
     {
-        if (moverTransform is null || !IsOwner || Swords.Count == 0)
+        if (!IsOwner)
         {
+            return;
+        }
+        
+        if (moverTransform is null || Swords.Count == 0)
+        {
+            Debug.Log("error attacker");
             return;
         }
         

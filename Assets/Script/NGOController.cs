@@ -179,7 +179,6 @@ public class NGOController : NetworkBehaviour
                 blue = true;
             }
         }
-        
     }
 
     private void OnClientDisconnectCallback(ulong clientid)

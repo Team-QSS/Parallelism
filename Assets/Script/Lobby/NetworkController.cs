@@ -163,7 +163,7 @@ public class NetworkController : MonoBehaviour
             
             Debug.Log("update!!");
             
-            m_CurrentLobby = await LobbyService.Instance.GetLobbyAsync(m_CurrentLobby.Id); 
+            m_CurrentLobby = await LobbyService.Instance.GetLobbyAsync(m_CurrentLobby.Id);
             LobbyConverters.RemoteToLocal(m_CurrentLobby,m_LocalLobby);
             
             Check();
@@ -327,7 +327,7 @@ public class NetworkController : MonoBehaviour
             PlayerDataObject dataObj = new PlayerDataObject(visibility: PlayerDataObject.VisibilityOptions.Member, value: value);
             dataCurr[key] = dataObj;
         }
-
+        
         if (m_UpdatePlayerCooldown.TaskQueued)
         {
             Debug.LogWarning("too many request");
@@ -418,20 +418,18 @@ public class NetworkController : MonoBehaviour
 
             await PlayerReady();
 
-            if (!IsLobbyHost())
+            if (IsLobbyHost())
             {
-                return;
-            }
-
-            foreach (var plr in m_LocalLobby.LocalPlayers)
-            {
-                if (plr.Team.Value == Team.None || plr.UserStatus.Value != PlayerStatus.Ready)
+                foreach (var plr in m_LocalLobby.LocalPlayers)
                 {
-                    return;
+                    if (plr.Team.Value == Team.None || plr.UserStatus.Value != PlayerStatus.Ready)
+                    {
+                        return;
+                    }
                 }
-            }
 
-            await UpdateLobbyDataAsync(new Dictionary<string, string> { { key_LobbyState, ((int)LobbyState.Lobby).ToString() } });
+                await UpdateLobbyDataAsync(new Dictionary<string, string> { { key_LobbyState, ((int)LobbyState.Lobby).ToString() } });
+            }
         }
     }
     
@@ -480,10 +478,12 @@ public class NetworkController : MonoBehaviour
         }
         catch (LobbyServiceException e)
         {
+            await KickPlayer();
             Debug.Log(e);
         }
         catch (Exception e)
         {
+            await KickPlayer();
             Debug.Log(e);
         }
     }
@@ -601,6 +601,7 @@ public class NetworkController : MonoBehaviour
             }
 
             m_CurrentLobby = null;
+            m_LocalLobby = null;
         }
         catch (LobbyServiceException e)
         {
@@ -826,6 +827,17 @@ public class NetworkController : MonoBehaviour
 
                     localLobby.AddPlayer(index, newPlayer);
                 }
+                
+                List<string> list = new();
+                foreach (var plr in localLobby.LocalPlayers)
+                {
+                    if (list.Contains(plr.ID.Value))
+                    {
+                        Debug.LogWarning("id error occured! please restart game");
+                    }
+                    list.Add(plr.ID.Value);
+                }
+                
                 _spawnLocation.OnPlayerChanged();
             };
 

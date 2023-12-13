@@ -1201,6 +1201,7 @@ GameObject:
   - component: {fileID: -7171301387430754673}
   - component: {fileID: 5530391345243077893}
   - component: {fileID: 2021362546127558198}
+  - component: {fileID: 2081311115519564778}
   m_Layer: 0
   m_Name: PlayerRed
   m_TagString: MoverPlayerRed
@@ -1394,8 +1395,23 @@ MonoBehaviour:
   ActiveSceneSynchronization: 0
   SceneMigrationSynchronization: 1
   SpawnWithObservers: 1
-  DontDestroyWithOwner: 0
+  DontDestroyWithOwner: 1
   AutoObjectParentSync: 1
+--- !u!114 &2081311115519564778
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3338536401257098634}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32e90a2fa28d8394b833cad36161ef64, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hp: 100
+  damColTime: 1
+  helColTime: 1
 --- !u!1 &3671069576298669752
 GameObject:
   m_ObjectHideFlags: 0

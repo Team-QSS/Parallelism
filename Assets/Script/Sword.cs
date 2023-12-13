@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class Sword : NetworkBehaviour
 {
-    [HideInInspector] public Attacker        attacker;
+    public                   Attacker        attacker;
     private                  BoxCollider     boxCollider;
     private                  Animator        anim;
     private static readonly  int             AttackTrigger = Animator.StringToHash("Attack");
@@ -57,11 +57,6 @@ public class Sword : NetworkBehaviour
         testAnchor.transform.parent = null;
     }
 
-    private void Start()
-    {
-        //camTr  = Camera.main.transform;
-    }
-
     private void OnEnable()
     {
         anim.Play("Idle");
@@ -77,7 +72,7 @@ public class Sword : NetworkBehaviour
 
     private void Update()
     {
-        if (IsStuck || IsOwner)
+        if (IsStuck && IsOwner)
         {
             AttackerTrace();
         }
@@ -107,6 +102,11 @@ public class Sword : NetworkBehaviour
     //Player2 - Attacker에 붙어있을 때 따라가는 기능
     private void AttackerTrace()
     {
+        if (index == 0 || length == 0)
+        {
+            Debug.LogWarning("error sword");
+            return;
+        }
         float delta = Time.smoothDeltaTime;
         float traceMoveSpeed = 30;
         float traceRotateSpeed = 30;

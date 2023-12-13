@@ -42,7 +42,6 @@ public class PlayerMove : NetworkBehaviour
     private void FixedUpdate()
     {
         if (!IsOwner) return;
-
         
         MovePlayer();
         PlayerRotate();

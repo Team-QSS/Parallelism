@@ -49,7 +49,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d6b8bfbcdb7766418728605b1ea7a98, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moverTransform: {fileID: 8284442772237336402, guid: 44e50f1bbde0d394fabdd0b741dea328,
+  moverTransform: {fileID: 8284442772237336402, guid: a48b2230b48e67246b2079c1b3ce3e7a,
     type: 3}
   mouseSensitivity: {x: 400, y: 250}
   swordCount: 2
@@ -71,7 +71,7 @@ MonoBehaviour:
   ActiveSceneSynchronization: 0
   SceneMigrationSynchronization: 1
   SpawnWithObservers: 1
-  DontDestroyWithOwner: 0
+  DontDestroyWithOwner: 1
   AutoObjectParentSync: 1
 --- !u!114 &1576663157602912061
 MonoBehaviour:
