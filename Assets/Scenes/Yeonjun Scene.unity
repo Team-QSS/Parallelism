@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028331, g: 0.2257133, b: 0.3069217, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -582,7 +582,7 @@ PrefabInstance:
     - target: {fileID: 4735202183287030787, guid: 2da3dcc22749e7f4280737786d898334,
         type: 3}
       propertyPath: m_Size
-      value: 0.96943974
+      value: 0.122240774
       objectReference: {fileID: 0}
     - target: {fileID: 4746035142520893616, guid: 2da3dcc22749e7f4280737786d898334,
         type: 3}
@@ -622,6 +622,11 @@ PrefabInstance:
     - target: {fileID: 4844316182991342303, guid: 2da3dcc22749e7f4280737786d898334,
         type: 3}
       propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4844316182991342303, guid: 2da3dcc22749e7f4280737786d898334,
+        type: 3}
+      propertyPath: m_AnchorMin.y
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4844785881582304729, guid: 2da3dcc22749e7f4280737786d898334,
@@ -806,8 +811,13 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4845276930943762971, guid: 2da3dcc22749e7f4280737786d898334,
         type: 3}
-      propertyPath: m_AnchoredPosition.y
+      propertyPath: m_SizeDelta.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4845276930943762971, guid: 2da3dcc22749e7f4280737786d898334,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -0.000061035156
       objectReference: {fileID: 0}
     - target: {fileID: 4845637959249703711, guid: 2da3dcc22749e7f4280737786d898334,
         type: 3}
@@ -1201,15 +1211,15 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2021362546127558198, guid: 44e50f1bbde0d394fabdd0b741dea328,
+        type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 116273355
+      objectReference: {fileID: 0}
     - target: {fileID: 3338536401257098634, guid: 44e50f1bbde0d394fabdd0b741dea328,
         type: 3}
       propertyPath: m_Name
       value: Player
-      objectReference: {fileID: 0}
-    - target: {fileID: 3338536401257098634, guid: 44e50f1bbde0d394fabdd0b741dea328,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8284442772237336402, guid: 44e50f1bbde0d394fabdd0b741dea328,
         type: 3}
@@ -1261,36 +1271,21 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8988455530148421907, guid: 44e50f1bbde0d394fabdd0b741dea328,
+        type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8988455530148421907, guid: 44e50f1bbde0d394fabdd0b741dea328,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 3338536401257098634, guid: 44e50f1bbde0d394fabdd0b741dea328,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 7570752426749000038}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 44e50f1bbde0d394fabdd0b741dea328, type: 3}
---- !u!1 &7570752426749000037 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3338536401257098634, guid: 44e50f1bbde0d394fabdd0b741dea328,
-    type: 3}
-  m_PrefabInstance: {fileID: 7570752426749000036}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &7570752426749000038
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7570752426749000037}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 32e90a2fa28d8394b833cad36161ef64, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  hp: 100
-  damColTime: 1
-  helColTime: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
