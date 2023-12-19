@@ -249,7 +249,9 @@ public class Sword : NetworkBehaviour
         float attackTiming = .46f * animTime;
         yield return new WaitForSeconds(attackTiming);
         boxCollider.enabled = true;
+        Debug.Log("collider on");
         yield return new WaitForSeconds(animTime - attackTiming + .1f);
+        Debug.Log("collider off");
         boxCollider.enabled = false;
         isSkill             = false;
     }
@@ -257,6 +259,8 @@ public class Sword : NetworkBehaviour
     //적중 시
     private void OnTriggerEnter(Collider other)
     {
+        Debug.Log(other.gameObject.name);
+        Debug.Log(other.gameObject.tag);
         if (isThrow)
         {
             if (throwCoroutine == null) return;
@@ -278,6 +282,7 @@ public class Sword : NetworkBehaviour
         {
             Debug.Log("Hit Target");
             SoundManager.Instance.PlayOneShot(SoundEffect.SwordHit);
+            //공격자
             hit.Hit(damage);
         }
     }

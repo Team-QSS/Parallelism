@@ -41,6 +41,7 @@ public class PlayerState : MonoBehaviour, IHit
         animator.Animator.SetTrigger("Die");
     }
 
+    //맞는 함수
     public void Hit(float damage)
     {
         if (currentTimeForDam < damColTime) return;
