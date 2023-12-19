@@ -16,6 +16,11 @@ public class PlayerState : MonoBehaviour, IHit
 
     private NetworkAnimator animator;
 
+    private void Awake()
+    {
+        animator = GetComponent<NetworkAnimator>();
+    }
+
     private void Start()
     {
         currentHp = maxHp;
@@ -41,6 +46,7 @@ public class PlayerState : MonoBehaviour, IHit
         if (currentTimeForDam < damColTime) return;
         currentHp -= damage;
         currentTimeForDam = 0f;
+        Debug.Log($"Hit Character {currentHp}");
     }
 
     public void Heal(float healMount)

@@ -1409,7 +1409,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 32e90a2fa28d8394b833cad36161ef64, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hp: 100
+  maxHp: 100
+  currentHp: 0
   damColTime: 1
   helColTime: 1
 --- !u!1 &3671069576298669752
