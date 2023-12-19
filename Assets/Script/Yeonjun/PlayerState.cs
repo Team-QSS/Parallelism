@@ -1,10 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using Unity.Netcode.Components;
 using UnityEngine;
 
-public class PlayerState : MonoBehaviour, IHit
+public class PlayerState : NetworkBehaviour, IHit
 {
     public float maxHp;
     public float currentHp;
@@ -44,12 +45,25 @@ public class PlayerState : MonoBehaviour, IHit
     //맞는 함수
     public void Hit(float damage)
     {
+        Debug.Log("hit");
+        HitServerRpc(damage);
+    }
+
+    [ServerRpc (RequireOwnership = false)]
+    private void HitServerRpc(float damage)
+    {
+        HitClientRpc(damage);
+    }
+
+    [ClientRpc]
+    private void HitClientRpc(float damage)
+    {
         if (currentTimeForDam < damColTime) return;
         currentHp -= damage;
         currentTimeForDam = 0f;
         Debug.Log($"Hit Character {currentHp}");
     }
-
+    
     public void Heal(float healMount)
     {
         if (currentTimeForHel < helColTime) return;
