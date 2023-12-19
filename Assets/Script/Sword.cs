@@ -102,11 +102,14 @@ public class Sword : NetworkBehaviour
     //Player2 - Attacker에 붙어있을 때 따라가는 기능
     private void AttackerTrace()
     {
+<<<<<<< Updated upstream
         if (length == 0)
         {
             Debug.LogWarning("error sword");
             return;
         }
+=======
+>>>>>>> Stashed changes
         float delta = Time.smoothDeltaTime;
         float traceMoveSpeed = 30;
         float traceRotateSpeed = 30;
@@ -201,6 +204,7 @@ public class Sword : NetworkBehaviour
         comboEndTime   = comboEndTime * animTime - startTime - endTime - comboStartTime;
         float remTime = .1f + animTime - (startTime + endTime + comboStartTime + comboEndTime);
         yield return new WaitForSeconds(startTime);
+        SoundManager.Instance.PlayOneShot(SoundEffect.SwordSwing);
         boxCollider.enabled = true;
         yield return new WaitForSeconds(endTime);
         boxCollider.enabled = false;
@@ -268,11 +272,12 @@ public class Sword : NetworkBehaviour
             anim.SetBool(ThrowBool, false);
             StartCoroutine(Utill.Execute(.1f, () => isThrow = false));
         }
-        else if (other.CompareTag("Player"))
+        if (other.CompareTag("Player"))
         {
             var hit = other.GetComponent<IHit>();
             if (hit != null)
             {
+                SoundManager.Instance.PlayOneShot(SoundEffect.SwordHit);
                 hit.Hit(damage);
             }
         }

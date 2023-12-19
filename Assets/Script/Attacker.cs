@@ -15,6 +15,9 @@ public class Attacker : NetworkBehaviour
     public readonly List<Sword> Swords = new ();
     private                 Sword       currentSword;
 
+    public bool isSuc = true;
+    public  bool red;
+
     private void Start()
     {
         if (NetworkManager.Singleton.IsServer)
@@ -58,6 +61,34 @@ public class Attacker : NetworkBehaviour
     
     private void Update()
     {
+        if (!isSuc)
+        {
+            if (red)
+            {
+                moverTransform = GameObject.Find("PlayerRed(Clone)").transform;
+            }
+            else
+            {
+                moverTransform = GameObject.Find("PlayerBlue(Clone)").transform;
+            }
+
+            if (moverTransform)
+            {
+                isSuc = true;
+            }
+        }
+        if (Input.GetKey(KeyCode.Space))
+        {
+            foreach (var sword in Swords)
+            {
+                Debug.Log(sword.transform.position);
+            }
+        }
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            Debug.Log(moverTransform.gameObject.name);
+        }
+        
         if (!IsOwner)
         {
             return;
