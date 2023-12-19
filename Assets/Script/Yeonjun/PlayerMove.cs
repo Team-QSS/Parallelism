@@ -26,6 +26,7 @@ public class PlayerMove : NetworkBehaviour
 
     private void Start()
     {
+        //cam setting here
         playerRigid = GetComponent<Rigidbody>();
         animator = GetComponent<NetworkAnimator>();
         currentTime = dashCol;
