@@ -437,7 +437,20 @@ public class NetworkController : MonoBehaviour
             }
         }
     }
-    
+
+    [Command]
+    private async void SmartJoinLobby()
+    {
+        var cnt = await ListLobbies();
+        if (cnt > 0)
+        {
+            QuickJoinLobby();
+        }
+        else
+        {
+            CreateLobby();
+        }
+    }
     [Command]
     public async void QuickJoinLobby()
     {
@@ -494,7 +507,7 @@ public class NetworkController : MonoBehaviour
     }
 
     [Command]
-    public async void ListLobbies()
+    public async Task<int> ListLobbies()
     {
         try
         {
@@ -512,16 +525,18 @@ public class NetworkController : MonoBehaviour
             };
 
             QueryResponse queryResponse = await Lobbies.Instance.QueryLobbiesAsync(queryLobbiesOptions);
-
-            Debug.Log("lobby" + " " + queryResponse.Results.Count);
+            return queryResponse.Results.Count;
+            
+            /*Debug.Log("lobby" + " " + queryResponse.Results.Count);
             foreach (var lobby in queryResponse.Results)
             {
                 Debug.Log(lobby.Name + " " + lobby.MaxPlayers + " " + lobby.Id + " " + lobby.LobbyCode);
-            }
+            }*/
         }
         catch (LobbyServiceException e)
         {
             Debug.LogError(e);
+            return default;
         }
     }
 

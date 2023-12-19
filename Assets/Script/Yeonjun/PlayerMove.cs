@@ -26,7 +26,8 @@ public class PlayerMove : NetworkBehaviour
 
     private void Start()
     {
-        //cam setting here
+        //GameObject.Find("Main Camera").GetComponent<Camera>().enabled = false;
+        //GetComponentInChildren<Camera>().enabled = true;
         playerRigid = GetComponent<Rigidbody>();
         animator = GetComponent<NetworkAnimator>();
         currentTime = dashCol;
