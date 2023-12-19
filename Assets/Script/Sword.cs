@@ -102,14 +102,6 @@ public class Sword : NetworkBehaviour
     //Player2 - Attacker에 붙어있을 때 따라가는 기능
     private void AttackerTrace()
     {
-<<<<<<< Updated upstream
-        if (length == 0)
-        {
-            Debug.LogWarning("error sword");
-            return;
-        }
-=======
->>>>>>> Stashed changes
         float delta = Time.smoothDeltaTime;
         float traceMoveSpeed = 30;
         float traceRotateSpeed = 30;
