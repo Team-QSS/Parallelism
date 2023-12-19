@@ -40,7 +40,7 @@ public class PlayerState : NetworkBehaviour, IHit
 
     private void Die()
     {
-        isDie = false;
+        isDie = true;
         animator.Animator.SetTrigger("Die");
     }
 
