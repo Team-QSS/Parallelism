@@ -33,7 +33,7 @@ public class PlayerState : MonoBehaviour, IHit
 
     private void Die()
     {
-        
+        animator.Animator.SetTrigger("Die");
     }
 
     public void Hit(float damage)
