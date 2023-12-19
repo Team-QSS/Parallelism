@@ -73,6 +73,7 @@ public class NetworkController : MonoBehaviour
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
         }
         
+        SmartJoinLobby();
     }
     
     private bool Application_wantsToQuit()
