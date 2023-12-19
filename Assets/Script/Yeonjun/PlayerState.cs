@@ -16,6 +16,7 @@ public class PlayerState : NetworkBehaviour, IHit
     private float currentTimeForHel;
 
     private NetworkAnimator animator;
+    private bool            isDie;
 
     private void Awake()
     {
@@ -34,11 +35,12 @@ public class PlayerState : NetworkBehaviour, IHit
     {
         currentTimeForDam += Time.deltaTime;
         currentTimeForHel += Time.deltaTime;
-        if(currentHp <= 0) Die();
+        if(currentHp <= 0 && !isDie) Die();
     }
 
     private void Die()
     {
+        isDie = false;
         animator.Animator.SetTrigger("Die");
     }
 
