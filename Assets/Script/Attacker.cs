@@ -11,12 +11,11 @@ public class Attacker : NetworkBehaviour
     [Header("Camera")] [SerializeField] private Vector2                 mouseSensitivity;
 
     [Header("Sword")] [SerializeField] private int swordCount;
-
+    
     public readonly List<Sword> Swords = new ();
     private                 Sword       currentSword;
 
     private void Start()
-    
     {
         if (NetworkManager.Singleton.IsServer)
         {
@@ -36,7 +35,7 @@ public class Attacker : NetworkBehaviour
             {
                 var sw = sword.GetComponent<Sword>();
                 sw.attacker = this;
-                sw.camTr = transform.GetComponentInChildren<CinemachineVirtualCamera>().transform;
+                sw.camTr = GetComponentInChildren<CinemachineVirtualCamera>().transform;
                 sw.enabled = true;
                 Swords.Add(sw);
             }
@@ -44,6 +43,7 @@ public class Attacker : NetworkBehaviour
         
         if (GetComponent<NetworkObject>().IsOwner)
         {
+            GetComponentInChildren<CinemachineVirtualCamera>().enabled = true;
             
             if (Swords.Count != 0)
             {
