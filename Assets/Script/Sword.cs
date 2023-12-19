@@ -264,14 +264,21 @@ public class Sword : NetworkBehaviour
             anim.SetBool(ThrowBool, false);
             StartCoroutine(Utill.Execute(.1f, () => isThrow = false));
         }
-        if (other.CompareTag("Player"))
+
+        if (attacker.red)
         {
-            var hit = other.GetComponent<IHit>();
-            if (hit != null)
-            {
-                SoundManager.Instance.PlayOneShot(SoundEffect.SwordHit);
-                hit.Hit(damage);
-            }
+            if (!other.CompareTag("MoverPlayerBlue")) return;
+        }
+        else
+        {
+            if (!other.CompareTag("MoverPlayerRed")) return;
+        }
+        var hit = other.GetComponentInChildren<IHit>();
+        if (hit != null)
+        {
+            Debug.Log("Hit Target");
+            SoundManager.Instance.PlayOneShot(SoundEffect.SwordHit);
+            hit.Hit(damage);
         }
     }
 }
