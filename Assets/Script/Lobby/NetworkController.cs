@@ -439,7 +439,7 @@ public class NetworkController : MonoBehaviour
     }
 
     [Command]
-    private async void SmartJoinLobby()
+    public async void SmartJoinLobby()
     {
         var cnt = await ListLobbies();
         if (cnt > 0)
