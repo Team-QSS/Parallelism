@@ -864,6 +864,11 @@ PrefabInstance:
       propertyPath: moverTransform
       value: 
       objectReference: {fileID: 1471824740}
+    - target: {fileID: 3409565639326611659, guid: cd720734f1091d94c8314bf8d830a596,
+        type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 2801124227
+      objectReference: {fileID: 0}
     - target: {fileID: 8913830157889013625, guid: cd720734f1091d94c8314bf8d830a596,
         type: 3}
       propertyPath: m_LocalPosition.x

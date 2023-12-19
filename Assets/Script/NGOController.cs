@@ -49,7 +49,7 @@ public class NGOController : NetworkBehaviour
             NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnectedCallback;
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnectCallback;
             
-            NetworkManager.Singleton.SceneManager.LoadScene("Yeonjun Scene",LoadSceneMode.Single);
+            NetworkManager.Singleton.SceneManager.LoadScene("InGame",LoadSceneMode.Single);
             
         }
         catch (Exception e)
@@ -146,15 +146,20 @@ public class NGOController : NetworkBehaviour
             {
                 if (red)
                 {
-                    selectedPrefab = Instantiate(attackerRed);
-                    selectedPrefab.GetComponent<Attacker>().moverTransform = objR.transform;
-                    selectedPrefab.GetComponent<Attacker>().enabled = true;
+                    selectedPrefab                                         = Instantiate(attackerRed);
+                    var attacker = selectedPrefab.GetComponent<Attacker>();
+                    attacker.red     = true;
+                    attacker.isSuc   = false;
+                    attacker.enabled = true;
                     selectedPrefab.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientid);
+                    
                 }
                 else
                 {
                     objR = Instantiate(moverRed);
                     objR.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientid);
+                    Debug.Log(2);
+                    red = true;
                 }
             }
             else
@@ -162,24 +167,29 @@ public class NGOController : NetworkBehaviour
                 if (blue)
                 {
                     selectedPrefab = Instantiate(attackerBlue);
-                    selectedPrefab.GetComponent<Attacker>().moverTransform = objB.transform;
-                    selectedPrefab.GetComponent<Attacker>().enabled = true;
+                    var attacker = selectedPrefab.GetComponent<Attacker>();
+                    attacker.red     = false;
+                    attacker.isSuc   = false;
+                    attacker.enabled = true;
                     selectedPrefab.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientid);
+                    Debug.Log(3);
                 }
                 else
                 {
                     objB = Instantiate(moverBlue);
                     objB.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientid);
+                    Debug.Log(4);
+                    blue = true;
                 }
             }
             
             if (isRedTeam)
             {
-                red = true;
+                
             }
             else
             {
-                blue = true;
+                
             }
         }
     }

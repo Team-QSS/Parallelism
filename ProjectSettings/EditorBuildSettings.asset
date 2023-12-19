@@ -9,6 +9,6 @@ EditorBuildSettings:
     path: Assets/Scenes/Waiting Room.unity
     guid: 45f919107e613d2428b5cfc938d62920
   - enabled: 1
-    path: Assets/Scenes/Yeonjun Scene.unity
-    guid: a8a3caf32a899ef449dff6c6e1efbc54
+    path: Assets/Scenes/InGame.unity
+    guid: 43c76582dd2aecc4d8c6c417638c177a
   m_configObjects: {}
