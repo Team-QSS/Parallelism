@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode.Components;
 using UnityEngine;
 
 public class PlayerState : MonoBehaviour, IHit
@@ -12,6 +13,8 @@ public class PlayerState : MonoBehaviour, IHit
     [SerializeField] private float helColTime;
     private float currentTimeForDam;
     private float currentTimeForHel;
+
+    private NetworkAnimator animator;
 
     private void Start()
     {
