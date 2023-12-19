@@ -49,7 +49,7 @@ public class NGOController : NetworkBehaviour
             NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnectedCallback;
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnectCallback;
             
-            NetworkManager.Singleton.SceneManager.LoadScene("InGame",LoadSceneMode.Single);
+            NetworkManager.Singleton.SceneManager.LoadScene("Yeonjun Scene", LoadSceneMode.Single);
             
         }
         catch (Exception e)
