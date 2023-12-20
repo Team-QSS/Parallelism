@@ -44,6 +44,12 @@ public class PlayerState : NetworkBehaviour, IHit
     {
         currentTimeForDam += Time.deltaTime;
         currentTimeForHel += Time.deltaTime;
+
+        if (Input.GetKeyDown(KeyCode.K))
+        {
+            Debug.Log(currentHp);
+        }
+        hpBar.value = currentHp;
         // Debug.Log(isDie);
         if(currentHp <= 0 && !isDie) Die(red);
     }
@@ -54,7 +60,7 @@ public class PlayerState : NetworkBehaviour, IHit
         isDie = true;
         animator.Animator.SetTrigger("Die");
 
-        DieServerRpc(red);
+        DieServerRpc(!red);
     }
 
     [ServerRpc (RequireOwnership = false)]
@@ -74,7 +80,7 @@ public class PlayerState : NetworkBehaviour, IHit
     //누구 죽으면 다 호출 bool은 red가 이기면 true
     public void GameEnd(bool winRed)
     {
-        var canvas = GameObject.Find("End Canvas").GetComponent<Canvas>();
+        var canvas = FindObjectOfType<Title>().GetComponent<Canvas>();
         if (canvas.enabled) return;
         if (winRed && red)
         {
@@ -112,7 +118,6 @@ public class PlayerState : NetworkBehaviour, IHit
         
         currentHp         -= damage;
         currentTimeForDam =  0f;
-        hpBar.value       =  currentHp;
         Debug.Log($"Hit Character {currentHp}");
     }
     
