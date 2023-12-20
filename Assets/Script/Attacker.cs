@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Cinemachine;
+using TMPro;
 using Unity.Mathematics;
 using Unity.Netcode;
 using UnityEngine;
@@ -187,4 +188,21 @@ public class Attacker : NetworkBehaviour
     }
 
     #endregion
+    
+    //누구 죽으면 다 호출 bool은 red가 이기면 true
+    public void GameEnd(bool winRed)
+    {
+        var canvas = GameObject.Find("End Canvas").GetComponent<Canvas>();
+        if (canvas.enabled) return;
+        if (winRed && red)
+        {
+            canvas.transform.Find("Dead").GetComponent<TextMeshProUGUI>().text = "You Win!";
+            canvas.enabled                                                     = true;
+        }
+        else
+        {
+            canvas.transform.Find("Dead").GetComponent<TextMeshProUGUI>().text = "You Lose!";
+            canvas.enabled                                                     = true;
+        }
+    }
 }
