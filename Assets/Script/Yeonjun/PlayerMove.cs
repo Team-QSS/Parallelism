@@ -27,7 +27,8 @@ public class PlayerMove : NetworkBehaviour
     private void Start()
     {
         GameObject.Find("Main Camera").GetComponent<Camera>().enabled = false;
-        GetComponentInChildren<Camera>().enabled = true;
+        if (this.CompareTag("MoverPlayerBlue")) GameObject.Find("CameraBlue").GetComponent<Camera>().enabled = true;
+        else GameObject.Find("CameraRed").GetComponent<Camera>().enabled = true;
         playerRigid = GetComponent<Rigidbody>();
         animator = GetComponent<NetworkAnimator>();
         currentTime = dashCol;
