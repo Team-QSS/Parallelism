@@ -19,13 +19,10 @@ public class PlayerState : NetworkBehaviour, IHit
     private bool            isDie;
 
     private bool red;
-    
-    private Slider hpBar;
 
     private void Awake()
     {
         animator = GetComponent<NetworkAnimator>();
-        hpBar    = GetComponentInChildren<Slider>();
     }
 
     private void Start()
@@ -33,7 +30,6 @@ public class PlayerState : NetworkBehaviour, IHit
         red = gameObject.name == "PlayerRed(Clone)";
         
         currentHp   = maxHp;
-        hpBar.value = currentHp;
         
         currentTimeForDam = damColTime;
         currentTimeForHel = helColTime;
@@ -49,7 +45,6 @@ public class PlayerState : NetworkBehaviour, IHit
         {
             Debug.Log(currentHp);
         }
-        hpBar.value = currentHp;
         // Debug.Log(isDie);
         if(currentHp <= 0 && !isDie) Die(red);
     }
@@ -72,27 +67,11 @@ public class PlayerState : NetworkBehaviour, IHit
     [ClientRpc]
     private void DieClientRpc(bool red)
     {
-        GameEnd(red);
-        GameObject.FindGameObjectWithTag("AttackerPlayerRed").GetComponent<Attacker>().GameEnd(red);
-        GameObject.FindGameObjectWithTag("AttackerPlayerBlue").GetComponent<Attacker>().GameEnd(red);
+        GameManager.Instance.GameEnd(red);
     }
 
     //누구 죽으면 다 호출 bool은 red가 이기면 true
-    public void GameEnd(bool winRed)
-    {
-        var canvas = FindObjectOfType<Title>().GetComponent<Canvas>();
-        if (canvas.enabled) return;
-        if (winRed && red)
-        {
-            canvas.transform.Find("Dead").GetComponent<TextMeshProUGUI>().text = "You Win!";
-            canvas.enabled                                                     = true;
-        }
-        else
-        {
-            canvas.transform.Find("Dead").GetComponent<TextMeshProUGUI>().text = "You Lose!";
-            canvas.enabled                                                     = true;
-        }
-    }
+    
 
     //맞는 함수
     public void Hit(float damage)
