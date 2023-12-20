@@ -14,8 +14,8 @@ public class GameManager : NetworkBehaviour
     private PlayerState playerState; // (red) 팀에 mover에 playerstate 가져오기
     private Slider      hpBar;
     
-    private Attacker atk = null;
-    private PlayerMove mov = null;
+    private Attacker atk;
+    private PlayerMove mov;
 
     private void Setting()
     {
@@ -23,25 +23,30 @@ public class GameManager : NetworkBehaviour
         {
             atk = NetworkManager.Singleton.LocalClient.PlayerObject.GetComponent<Attacker>();
             mov = NetworkManager.Singleton.LocalClient.PlayerObject.GetComponent<PlayerMove>();
+
+
+            if (atk is not null)
+            {
+                red = atk.red;
+            }
+            else if (mov is not null)
+            {
+                red = mov.red;
+            }
+            else
+            {
+                // ingored
+            }
+
+            playerState =
+                red
+                    ? GameObject.FindGameObjectWithTag("MoverPlayerRed").GetComponent<PlayerState>()
+                    : GameObject.FindGameObjectWithTag("MoverPlayerBlue").GetComponent<PlayerState>();
         }
-        catch (Exception e)
+        catch (NullReferenceException)
         {
             // ignored
         }
-        if (atk is not null)
-        {
-            red = atk.red;
-        }
-        else if (mov is not null)
-        {
-            red = mov.red;
-        }
-        else
-        {
-            Debug.LogWarning("err");
-        }
-
-        playerState = red ? GameObject.FindGameObjectWithTag("MoverPlayerRed").GetComponent<PlayerState>() : GameObject.FindGameObjectWithTag("MoverPlayerBlue").GetComponent<PlayerState>();
     }
     
     private void Awake()
