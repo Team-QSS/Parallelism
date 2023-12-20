@@ -20,6 +20,8 @@ public class Attacker : NetworkBehaviour
 
     private void Start()
     {
+        red = gameObject.name == "AttackerRed(Clone)";
+        
         if (NetworkManager.Singleton.IsServer)
         {
             var swordPrefab = Resources.Load<Sword>("Sword");
@@ -61,6 +63,7 @@ public class Attacker : NetworkBehaviour
     
     private void Update()
     {
+<<<<<<< Updated upstream
         if (!isSuc)
         {
             if (moverTransform)
@@ -68,8 +71,20 @@ public class Attacker : NetworkBehaviour
                 isSuc = true;
             }
         }
+=======
+        // if (!isSuc)
+        // {
+        //     moverTransform = red ? GameObject.Find("PlayerRed(Clone)").transform : GameObject.Find("PlayerBlue(Clone)").transform;
+        //
+        //     if (moverTransform)
+        //     {
+        //         isSuc = true;
+        //     }
+        // }
+>>>>>>> Stashed changes
         if (Input.GetKeyDown(KeyCode.L))
         {
+            Debug.Log(red);
             Debug.Log(moverTransform.gameObject.name);
         }
         
@@ -96,7 +111,6 @@ public class Attacker : NetworkBehaviour
             currentSword.Throw();
             currentSword.Return();
             currentSword.Skill();
-
             if (!currentSword.gameObject.activeSelf)
             {
                 Select(Swords.FindIndex(e => e.IsStuck));

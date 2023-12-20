@@ -12,6 +12,7 @@ public class HpBar : MonoBehaviour
 
     private void Start()
     {
+        hpBar = GetComponentInChildren<Slider>();
         
         hpBar.maxValue = playerState.maxHp;
     }

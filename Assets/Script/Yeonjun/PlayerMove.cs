@@ -25,16 +25,12 @@ public class PlayerMove : NetworkBehaviour
     private Rigidbody playerRigid;
     private NetworkAnimator animator;
 
-    private PlayerState playerState;
-    private Slider      hpBar;
-
     private Transform camTr;
+
+    private bool red;
 
     private void Start()
     {
-        hpBar       = GetComponentInChildren<Slider>();
-        playerState = GetComponentInChildren<PlayerState>();
-        
         camTr     = Camera.main.transform;
         var movePoint = new Vector3(transform.position.x, 5f, transform.position.z - 6);
         camTr.position = movePoint;
@@ -46,6 +42,8 @@ public class PlayerMove : NetworkBehaviour
         playerRigid = GetComponent<Rigidbody>();
         animator    = GetComponent<NetworkAnimator>();
         currentTime = dashCol;
+
+        red = gameObject.name == "PlayerRed(Clone)";
     }
 
     private void Update()
@@ -58,7 +56,7 @@ public class PlayerMove : NetworkBehaviour
         var movePoint = new Vector3(transform.position.x, 5f, transform.position.z - 6);
         camTr.position = Vector3.Lerp(camTr.position, movePoint, 3f * Time.fixedDeltaTime);
         
-        hpBar.value = playerState.currentHp;
+        
     }
 
     private void FixedUpdate()

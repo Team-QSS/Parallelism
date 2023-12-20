@@ -261,6 +261,7 @@ public class Sword : NetworkBehaviour
     {
         Debug.Log(other.gameObject.name);
         Debug.Log(other.gameObject.tag);
+        Debug.Log(attacker.red);
         if (isThrow)
         {
             if (throwCoroutine == null) return;

@@ -1,6 +1,7 @@
 using Unity.Netcode;
 using Unity.Netcode.Components;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerState : NetworkBehaviour, IHit
 {
@@ -15,6 +16,10 @@ public class PlayerState : NetworkBehaviour, IHit
     private NetworkAnimator animator;
     private bool            isDie;
 
+    private bool red;
+    
+    private Slider hpBar;
+
     private void Awake()
     {
         animator = GetComponent<NetworkAnimator>();
@@ -22,10 +27,14 @@ public class PlayerState : NetworkBehaviour, IHit
 
     private void Start()
     {
-        currentHp = maxHp;
+        red = gameObject.name == "PlayerRed(Clone)";
+        
+        currentHp   = maxHp;
+        hpBar.value = currentHp;
         
         currentTimeForDam = damColTime;
         currentTimeForHel = helColTime;
+        
     }
 
     private void Update()
@@ -36,6 +45,7 @@ public class PlayerState : NetworkBehaviour, IHit
         if(currentHp <= 0 && !isDie) Die();
     }
 
+    //죽는 함수
     private void Die()
     {
         isDie = true;
@@ -63,8 +73,10 @@ public class PlayerState : NetworkBehaviour, IHit
     private void HitClientRpc(float damage)
     {
         if (currentTimeForDam < damColTime) return;
-        currentHp -= damage;
-        currentTimeForDam = 0f;
+        
+        currentHp         -= damage;
+        currentTimeForDam =  0f;
+        hpBar.value       =  currentHp;
         Debug.Log($"Hit Character {currentHp}");
     }
     
