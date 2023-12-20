@@ -145,7 +145,6 @@ public class NGOController : NetworkBehaviour
                 {
                     selectedPrefab = Instantiate(attackerRed);
                     var attacker = selectedPrefab.GetComponent<Attacker>();
-                    attacker.isSuc   = false;
                     attacker.enabled = true;
                     selectedPrefab.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientid);
                     Debug.Log(1);
@@ -164,7 +163,6 @@ public class NGOController : NetworkBehaviour
                 {
                     selectedPrefab = Instantiate(attackerBlue);
                     var attacker = selectedPrefab.GetComponent<Attacker>();
-                    attacker.isSuc   = false;
                     attacker.enabled = true;
                     selectedPrefab.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientid);
                     Debug.Log(3);

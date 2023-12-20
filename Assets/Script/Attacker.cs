@@ -15,7 +15,6 @@ public class Attacker : NetworkBehaviour
     public readonly List<Sword> Swords = new ();
     private                 Sword       currentSword;
 
-    public bool isSuc = true;
     public  bool red;
 
     private void Start()
@@ -63,25 +62,7 @@ public class Attacker : NetworkBehaviour
     
     private void Update()
     {
-<<<<<<< Updated upstream
-        if (!isSuc)
-        {
-            if (moverTransform)
-            {
-                isSuc = true;
-            }
-        }
-=======
-        // if (!isSuc)
-        // {
-        //     moverTransform = red ? GameObject.Find("PlayerRed(Clone)").transform : GameObject.Find("PlayerBlue(Clone)").transform;
-        //
-        //     if (moverTransform)
-        //     {
-        //         isSuc = true;
-        //     }
-        // }
->>>>>>> Stashed changes
+
         if (Input.GetKeyDown(KeyCode.L))
         {
             Debug.Log(red);
