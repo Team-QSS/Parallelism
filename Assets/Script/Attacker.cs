@@ -70,13 +70,6 @@ public class Attacker : NetworkBehaviour
                 isSuc = true;
             }
         }
-        if (Input.GetKey(KeyCode.Space))
-        {
-            foreach (var sword in Swords)
-            {
-                Debug.Log(sword.transform.position);
-            }
-        }
         if (Input.GetKeyDown(KeyCode.L))
         {
             Debug.Log(moverTransform.gameObject.name);

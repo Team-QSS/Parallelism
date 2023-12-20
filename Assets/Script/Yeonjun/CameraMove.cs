@@ -12,7 +12,7 @@ public class CameraMove : MonoBehaviour
     private void Start()
     {
         if (isRedCamera) player = GameObject.FindWithTag("MoverPlayerRed").GetComponent<Transform>();
-        else player = GameObject.FindWithTag("MoverPlayerBlue").GetComponent<Transform>();
+        else player = GameObject.FindWithTag("MoverPlayerBlue")?.GetComponent<Transform>();
     }
 
     private void FixedUpdate()

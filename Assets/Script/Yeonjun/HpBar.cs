@@ -12,12 +12,19 @@ public class HpBar : MonoBehaviour
 
     private void Start()
     {
-        hpBar = GetComponent<Slider>();
+        
         hpBar.maxValue = playerState.maxHp;
     }
 
     private void Update()
     {
-        hpBar.value = playerState.currentHp;
+        if (hpBar)
+        {
+            
+        }
+        else
+        {
+            hpBar = GetComponent<Slider>();
+        }
     }
 }

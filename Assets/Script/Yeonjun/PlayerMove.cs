@@ -2,6 +2,7 @@ using System.Collections;
 using Unity.Netcode;
 using Unity.Netcode.Components;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerMove : NetworkBehaviour
 {
@@ -24,13 +25,26 @@ public class PlayerMove : NetworkBehaviour
     private Rigidbody playerRigid;
     private NetworkAnimator animator;
 
+    private PlayerState playerState;
+    private Slider      hpBar;
+
+    private Transform camTr;
+
     private void Start()
     {
-        GameObject.Find("Main Camera").GetComponent<Camera>().enabled = false;
-        if (this.CompareTag("MoverPlayerBlue")) GameObject.Find("CameraBlue").GetComponent<Camera>().enabled = true;
-        else GameObject.Find("CameraRed").GetComponent<Camera>().enabled = true;
+        hpBar       = GetComponentInChildren<Slider>();
+        playerState = GetComponentInChildren<PlayerState>();
+        
+        camTr     = Camera.main.transform;
+        var movePoint = new Vector3(transform.position.x, 5f, transform.position.z - 6);
+        camTr.position = movePoint;
+        camTr.LookAt(transform.position);
+        
+        // GameObject.Find("Main Camera").GetComponent<Camera>().enabled = false;
+        // if (this.CompareTag("MoverPlayerBlue")) GameObject.Find("CameraBlue").GetComponent<Camera>().enabled = true;
+        // else GameObject.Find("CameraRed").GetComponent<Camera>().enabled                                     = true;
         playerRigid = GetComponent<Rigidbody>();
-        animator = GetComponent<NetworkAnimator>();
+        animator    = GetComponent<NetworkAnimator>();
         currentTime = dashCol;
     }
 
@@ -40,6 +54,11 @@ public class PlayerMove : NetworkBehaviour
         
         GetInput();
         currentTime += Time.deltaTime;
+        
+        var movePoint = new Vector3(transform.position.x, 5f, transform.position.z - 6);
+        camTr.position = Vector3.Lerp(camTr.position, movePoint, 3f * Time.fixedDeltaTime);
+        
+        hpBar.value = playerState.currentHp;
     }
 
     private void FixedUpdate()

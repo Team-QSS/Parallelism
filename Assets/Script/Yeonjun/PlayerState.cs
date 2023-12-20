@@ -35,6 +35,7 @@ public class PlayerState : NetworkBehaviour, IHit
     {
         currentTimeForDam += Time.deltaTime;
         currentTimeForHel += Time.deltaTime;
+        // Debug.Log(isDie);
         if(currentHp <= 0 && !isDie) Die();
     }
 

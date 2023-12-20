@@ -182,15 +182,6 @@ public class NGOController : NetworkBehaviour
                     blue = true;
                 }
             }
-            
-            if (isRedTeam)
-            {
-                
-            }
-            else
-            {
-                
-            }
         }
     }
 

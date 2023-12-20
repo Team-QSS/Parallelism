@@ -272,10 +272,12 @@ public class Sword : NetworkBehaviour
         if (attacker.red)
         {
             if (!other.CompareTag("MoverPlayerBlue")) return;
+            Debug.Log("red");
         }
         else
         {
             if (!other.CompareTag("MoverPlayerRed")) return;
+            Debug.Log("blue");
         }
         var hit = other.GetComponentInChildren<IHit>();
         if (hit != null)
