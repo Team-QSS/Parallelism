@@ -24,6 +24,7 @@ public class PlayerState : NetworkBehaviour, IHit
     private void Awake()
     {
         animator = GetComponent<NetworkAnimator>();
+        hpBar    = GetComponentInChildren<Slider>();
     }
 
     private void Start()
