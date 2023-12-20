@@ -63,8 +63,6 @@ public class Attacker : NetworkBehaviour
     {
         if (!isSuc)
         {
-            moverTransform = red ? GameObject.Find("PlayerRed(Clone)").transform : GameObject.Find("PlayerBlue(Clone)").transform;
-
             if (moverTransform)
             {
                 isSuc = true;

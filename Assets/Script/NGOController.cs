@@ -135,9 +135,6 @@ public class NGOController : NetworkBehaviour
         
         clientTeams = clientTeams.OrderBy(x => Random.Range(0,100)).ToDictionary(item => item.Key, item => item.Value);
         
-        GameObject objR = null;
-        GameObject objB = null;
-        
         foreach (var (clientid, team) in clientTeams)
         {
             var isRedTeam = team == Team.Red;
@@ -146,18 +143,17 @@ public class NGOController : NetworkBehaviour
             {
                 if (red)
                 {
-                    selectedPrefab                                         = Instantiate(attackerRed);
+                    selectedPrefab = Instantiate(attackerRed);
                     var attacker = selectedPrefab.GetComponent<Attacker>();
-                    attacker.red     = true;
                     attacker.isSuc   = false;
                     attacker.enabled = true;
                     selectedPrefab.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientid);
-                    
+                    Debug.Log(1);
                 }
                 else
                 {
-                    objR = Instantiate(moverRed);
-                    objR.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientid);
+                    selectedPrefab = Instantiate(moverRed);
+                    selectedPrefab.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientid);
                     Debug.Log(2);
                     red = true;
                 }
@@ -168,7 +164,6 @@ public class NGOController : NetworkBehaviour
                 {
                     selectedPrefab = Instantiate(attackerBlue);
                     var attacker = selectedPrefab.GetComponent<Attacker>();
-                    attacker.red     = false;
                     attacker.isSuc   = false;
                     attacker.enabled = true;
                     selectedPrefab.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientid);
@@ -176,15 +171,27 @@ public class NGOController : NetworkBehaviour
                 }
                 else
                 {
-                    objB = Instantiate(moverBlue);
-                    objB.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientid);
+                    selectedPrefab = Instantiate(moverBlue);
+                    selectedPrefab.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientid);
                     Debug.Log(4);
                     blue = true;
                 }
             }
         }
+
+        InheritanceClientRpc();
     }
 
+    [ClientRpc]
+    private void InheritanceClientRpc()
+    {
+        GameObject.FindGameObjectWithTag("AttackerPlayerRed").GetComponent<Attacker>().moverTransform =
+            GameObject.FindGameObjectWithTag("MoverPlayerRed").transform;
+        
+        GameObject.FindGameObjectWithTag("AttackerPlayerBlue").GetComponent<Attacker>().moverTransform =
+            GameObject.FindGameObjectWithTag("MoverPlayerBlue").transform;
+    }
+    
     private void OnClientDisconnectCallback(ulong clientid)
     {
         Debug.Log("disconnect " + clientid);

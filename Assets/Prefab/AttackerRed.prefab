@@ -49,10 +49,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d6b8bfbcdb7766418728605b1ea7a98, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moverTransform: {fileID: 8284442772237336402, guid: a48b2230b48e67246b2079c1b3ce3e7a,
-    type: 3}
+  moverTransform: {fileID: 0}
   mouseSensitivity: {x: 400, y: 250}
   swordCount: 2
+  isSuc: 1
+  red: 0
 --- !u!114 &3409565639326611659
 MonoBehaviour:
   m_ObjectHideFlags: 0

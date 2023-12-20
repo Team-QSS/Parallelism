@@ -1,6 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using Unity.Netcode;
 using Unity.Netcode.Components;
 using UnityEngine;
@@ -48,6 +45,10 @@ public class PlayerState : NetworkBehaviour, IHit
     //맞는 함수
     public void Hit(float damage)
     {
+        if (IsServer)
+        {
+            Debug.Log("server hit");
+        }
         Debug.Log("hit");
         HitServerRpc(damage);
     }
