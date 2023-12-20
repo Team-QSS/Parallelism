@@ -48,6 +48,7 @@ public class PlayerMove : NetworkBehaviour
 
     private void Update()
     {
+        if (GameManager.Instance.isEnd) return;
         if (!IsOwner) return;
         
         GetInput();

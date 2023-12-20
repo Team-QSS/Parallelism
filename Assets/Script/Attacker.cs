@@ -63,23 +63,25 @@ public class Attacker : NetworkBehaviour
     
     private void Update()
     {
-
-        if (Input.GetKeyDown(KeyCode.L))
-        {
-            Debug.Log(red);
-            Debug.Log(moverTransform.gameObject.name);
-        }
+        
+        // if (Input.GetKeyDown(KeyCode.L))
+        // {
+        //     Debug.Log(red);
+        //     Debug.Log(moverTransform.gameObject.name);
+        // }
+        
+        if (GameManager.Instance.isEnd) return;
         
         if (!IsOwner)
         {
             return;
         }
         
-        if (moverTransform is null || Swords.Count == 0)
-        {
-            Debug.Log("error attacker");
-            return;
-        }
+        // if (moverTransform is null || Swords.Count == 0)
+        // {
+        //     Debug.Log("error attacker");
+        //     return;
+        // }
         
         float smoothDelta = Time.smoothDeltaTime;
         

@@ -225,7 +225,7 @@ public class Sword : NetworkBehaviour
         yield return new WaitForSeconds(1.2f);
 
         boxCollider.enabled = true;
-
+        SoundManager.Instance.PlayOneShot(SoundEffect.SwordSwing);
         yield return throwCoroutine = StartCoroutine(Utill.Execute(vec => transform.position = vec, transform.position,
                                                                    targetPosition,
                                                                    Vector3.Distance(
@@ -249,9 +249,10 @@ public class Sword : NetworkBehaviour
         float attackTiming = .46f * animTime;
         yield return new WaitForSeconds(attackTiming);
         boxCollider.enabled = true;
-        Debug.Log("collider on");
+        SoundManager.Instance.PlayOneShot(SoundEffect.SwordSwing);
+        // Debug.Log("collider on");
         yield return new WaitForSeconds(animTime - attackTiming + .1f);
-        Debug.Log("collider off");
+        // Debug.Log("collider off");
         boxCollider.enabled = false;
         isSkill             = false;
     }
@@ -259,9 +260,9 @@ public class Sword : NetworkBehaviour
     //적중 시
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log(other.gameObject.name);
-        Debug.Log(other.gameObject.tag);
-        Debug.Log(attacker.red);
+        // Debug.Log(other.gameObject.name);
+        // Debug.Log(other.gameObject.tag);
+        // Debug.Log(attacker.red);
         if (isThrow)
         {
             if (throwCoroutine == null) return;
@@ -273,17 +274,17 @@ public class Sword : NetworkBehaviour
         if (attacker.red)
         {
             if (!other.CompareTag("MoverPlayerBlue")) return;
-            Debug.Log("red");
+            // Debug.Log("red");
         }
         else
         {
             if (!other.CompareTag("MoverPlayerRed")) return;
-            Debug.Log("blue");
+            // Debug.Log("blue");
         }
         var hit = other.GetComponentInChildren<IHit>();
         if (hit != null)
         {
-            Debug.Log("Hit Target");
+            // Debug.Log("Hit Target");
             SoundManager.Instance.PlayOneShot(SoundEffect.SwordHit);
             //공격자
             hit.Hit(damage);
