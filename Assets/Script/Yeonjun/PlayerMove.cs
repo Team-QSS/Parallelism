@@ -27,7 +27,7 @@ public class PlayerMove : NetworkBehaviour
 
     private Transform camTr;
 
-    private bool red;
+    public bool red;
 
     private void Start()
     {
