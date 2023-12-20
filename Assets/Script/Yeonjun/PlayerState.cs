@@ -11,6 +11,7 @@ public class PlayerState : NetworkBehaviour, IHit
     
     [SerializeField] private float damColTime;
     [SerializeField] private float helColTime;
+    
     private float currentTimeForDam;
     private float currentTimeForHel;
 
@@ -43,14 +44,30 @@ public class PlayerState : NetworkBehaviour, IHit
         currentTimeForDam += Time.deltaTime;
         currentTimeForHel += Time.deltaTime;
         // Debug.Log(isDie);
-        if(currentHp <= 0 && !isDie) Die();
+        if(currentHp <= 0 && !isDie) Die(red);
     }
 
     //죽는 함수
-    private void Die()
+    private void Die(bool red)
     {
         isDie = true;
         animator.Animator.SetTrigger("Die");
+
+        DieServerRpc(red);
+    }
+
+    [ServerRpc (RequireOwnership = false)]
+    private void DieServerRpc(bool red)
+    {
+        DieClientRpc(red);
+    }
+
+    [ClientRpc]
+    private void DieClientRpc(bool red)
+    {
+        GameEnd(red);
+        GameObject.FindGameObjectWithTag("AttackerPlayerRed").GetComponent<Attacker>().GameEnd(red);
+        GameObject.FindGameObjectWithTag("AttackerPlayerBlue").GetComponent<Attacker>().GameEnd(red);
     }
 
     //누구 죽으면 다 호출 bool은 red가 이기면 true
