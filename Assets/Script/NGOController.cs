@@ -17,7 +17,10 @@ public class NGOController : NetworkBehaviour
     [SerializeField] private GameObject attackerRed;
     [SerializeField] private GameObject moverBlue;
     [SerializeField] private GameObject attackerBlue;
-
+    
+    private Transform s1;
+    private Transform s2;
+    
     //private Dictionary<string, uint> hashs = new() { {"PlayerRed", 2408260115}, {"PlayerBlue", 1853558016}, {"AttackerRed", 823301668},{"AttackerBlue", 3024824944} };
     
     [Header("controller")]
@@ -130,6 +133,9 @@ public class NGOController : NetworkBehaviour
 
     private void ObjSpawn()
     {
+        s1 = GameObject.Find("SpawnPoint1").transform;
+        s2 = GameObject.Find("SpawnPoint2").transform;
+        
         var red = false;
         var blue = false;
         
@@ -143,7 +149,7 @@ public class NGOController : NetworkBehaviour
             {
                 if (red)
                 {
-                    selectedPrefab = Instantiate(attackerRed);
+                    selectedPrefab = Instantiate(attackerRed, s1);
                     var attacker = selectedPrefab.GetComponent<Attacker>();
                     attacker.enabled = true;
                     selectedPrefab.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientid);
@@ -151,7 +157,7 @@ public class NGOController : NetworkBehaviour
                 }
                 else
                 {
-                    selectedPrefab = Instantiate(moverRed);
+                    selectedPrefab = Instantiate(moverRed, s1);
                     selectedPrefab.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientid);
                     Debug.Log(2);
                     red = true;
@@ -161,7 +167,7 @@ public class NGOController : NetworkBehaviour
             {
                 if (blue)
                 {
-                    selectedPrefab = Instantiate(attackerBlue);
+                    selectedPrefab = Instantiate(attackerBlue, s2);
                     var attacker = selectedPrefab.GetComponent<Attacker>();
                     attacker.enabled = true;
                     selectedPrefab.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientid);
@@ -169,7 +175,7 @@ public class NGOController : NetworkBehaviour
                 }
                 else
                 {
-                    selectedPrefab = Instantiate(moverBlue);
+                    selectedPrefab = Instantiate(moverBlue, s2);
                     selectedPrefab.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientid);
                     Debug.Log(4);
                     blue = true;

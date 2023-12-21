@@ -1,4 +1,3 @@
-using System;
 using TMPro;
 using UnityEngine;
 
@@ -15,20 +14,10 @@ public class UIController : MonoBehaviour
 
    public void ChangeText()
    {
+      team = _networkController.m_LocalUser.Team.Value;
+      status = _networkController.m_LocalUser.UserStatus.Value;
       _tmp.text = $"Team : {team}\n" +
                   $"Ready : {status == PlayerStatus.Ready}";
-   }
-   
-   public void ChangeTeam()
-   {
-      team = _networkController.m_LocalUser.Team.Value;
-      ChangeText();
-   }
-   
-   public void ChangeReady()
-   {
-      status = _networkController.m_LocalUser.UserStatus.Value;
-      ChangeText();
    }
 
    private void Update()

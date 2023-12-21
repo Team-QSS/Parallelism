@@ -164,8 +164,6 @@ public class NetworkController : MonoBehaviour
             m_LocalLobby = new LocalLobby();
             LobbyConverters.RemoteToLocal(m_CurrentLobby,m_LocalLobby);
             
-            _uiController.ChangeText();
-            
             Check();
             
             _spawnLocation.OnPlayerChanged();
@@ -436,6 +434,8 @@ public class NetworkController : MonoBehaviour
                 await UpdateLobbyDataAsync(new Dictionary<string, string> { { key_LobbyState, ((int)LobbyState.Lobby).ToString() } });
             }
         }
+        
+        _uiController.ChangeText();
     }
 
     [Command]
