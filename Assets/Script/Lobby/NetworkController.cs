@@ -49,6 +49,7 @@ public class NetworkController : MonoBehaviour
     
     [SerializeField] private SpawnLocation _spawnLocation;
     [SerializeField] private NGOController _ngoController;
+    [SerializeField] private UIController _uiController;
     
     private async void Awake()
     {
@@ -56,7 +57,7 @@ public class NetworkController : MonoBehaviour
         m_LocalUser = new LocalPlayer("", 0, false, "LocalPlayer");
         m_LocalLobby = new LocalLobby { LocalLobbyState = { Value = LobbyState.Lobby } };
 
-        Application.wantsToQuit += OnAppQuit;
+        Application.wantsToQuit += Application_wantsToQuit;
         
         if (UnityServices.State != ServicesInitializationState.Initialized)
         {
@@ -91,11 +92,6 @@ public class NetworkController : MonoBehaviour
         var task = KickPlayer();
         yield return new WaitUntil(() => task.IsCompleted);
         Application.Quit();
-    }
-    
-    private bool OnAppQuit()
-    {
-        return true;
     }
 
     private async void StartHeartBeat()
@@ -165,7 +161,10 @@ public class NetworkController : MonoBehaviour
             Debug.Log("update!!");
             
             m_CurrentLobby = await LobbyService.Instance.GetLobbyAsync(m_CurrentLobby.Id);
+            m_LocalLobby = new LocalLobby();
             LobbyConverters.RemoteToLocal(m_CurrentLobby,m_LocalLobby);
+            
+            _uiController.ChangeText();
             
             Check();
             
@@ -694,19 +693,36 @@ public class NetworkController : MonoBehaviour
             return;
         }
 
+        m_LocalUser.UserStatus.Value = ready ? PlayerStatus.Ready : PlayerStatus.Lobby;
+        
         if (withoutUpdate)
         {
             return;
         }
-
-        m_LocalUser.UserStatus.Value = ready ? PlayerStatus.Ready : PlayerStatus.Lobby;
+        
         await UpdatePlayerDataAsync(LobbyConverters.LocalToRemoteUserData(m_LocalUser)) ;
+    }
+
+    public async void ToggleChangeTeam()
+    {
+        m_LocalUser.Team.Value = m_LocalUser.Team.Value is Team.None or Team.Blue ? Team.Red : Team.Blue;
+        await UpdatePlayerDataAsync(LobbyConverters.LocalToRemoteUserData(m_LocalUser));
+    }
+    
+    public async void ToggleReady()
+    {
+        m_LocalUser.UserStatus.Value = m_LocalUser.UserStatus.Value is PlayerStatus.Lobby ? PlayerStatus.Ready : PlayerStatus.Lobby;
+        await UpdatePlayerDataAsync(LobbyConverters.LocalToRemoteUserData(m_LocalUser));
     }
     
     [Command]
     private async Task ChangeTeam(string team = "red", bool withoutUpdate = false)
     {
-        if (m_CurrentLobby == null) return;
+        if (m_CurrentLobby == null)
+        {
+            return;
+        }
+        
         m_LocalUser.Team.Value = team switch
         {
             "red" => Team.Red,
@@ -714,12 +730,10 @@ public class NetworkController : MonoBehaviour
             _ => Team.None
         };
 
-        if (withoutUpdate)
-        {
-            return;
+        if (!withoutUpdate)
+        { 
+            await UpdatePlayerDataAsync(LobbyConverters.LocalToRemoteUserData(m_LocalUser));   
         }
-        
-        await UpdatePlayerDataAsync(LobbyConverters.LocalToRemoteUserData(m_LocalUser));
     }
 
     [Command]

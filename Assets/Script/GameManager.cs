@@ -33,11 +33,7 @@ public class GameManager : NetworkBehaviour
             {
                 red = mov.red;
             }
-            else
-            {
-                // ingored
-            }
-
+            
             playerState =
                 red
                     ? GameObject.FindGameObjectWithTag("MoverPlayerRed").GetComponent<PlayerState>()
