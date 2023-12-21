@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 
@@ -16,8 +17,13 @@ public class UIController : MonoBehaviour
    {
       team = _networkController.m_LocalUser.Team.Value;
       status = _networkController.m_LocalUser.UserStatus.Value;
-      _tmp.text = $"Team : {team}\n" +
-                  $"Ready : {status == PlayerStatus.Ready}";
+      _tmp.text = $@"진영 : {team switch {
+                             Team.None => "없음",
+                             Team.Red  => "빨강",
+                             Team.Blue => "파랑",
+                             _         => throw new ArgumentOutOfRangeException() }}
+" +
+                  $"준비 상태 : {(status == PlayerStatus.Ready ? "완료" : "대기중") }";
    }
 
    private void Update()

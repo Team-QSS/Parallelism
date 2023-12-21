@@ -86,12 +86,12 @@ public class GameManager : NetworkBehaviour
         if (canvas.enabled) return;
         if ((winRed && red) || (!winRed && !red))
         {
-            canvas.transform.Find("Dead").GetComponent<TextMeshProUGUI>().text = "You Win!";
+            canvas.transform.Find("Dead").GetComponent<TextMeshProUGUI>().text = "승리!";
             canvas.enabled                                                     = true;
         }
         else
         {
-            canvas.transform.Find("Dead").GetComponent<TextMeshProUGUI>().text = "You Lose!";
+            canvas.transform.Find("Dead").GetComponent<TextMeshProUGUI>().text = "패배!";
             canvas.enabled                                                     = true;
         }
 
