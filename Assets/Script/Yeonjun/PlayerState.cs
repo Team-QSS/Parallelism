@@ -46,7 +46,7 @@ public class PlayerState : NetworkBehaviour, IHit
             Debug.Log(currentHp);
         }
         // Debug.Log(isDie);
-        if(currentHp <= 0 && !isDie) Die(red);
+        if(currentHp <= 0 && !isDie) Die(gameObject.CompareTag("MoverPlayerBlue"));
     }
 
     //죽는 함수
@@ -55,7 +55,7 @@ public class PlayerState : NetworkBehaviour, IHit
         isDie = true;
         animator.Animator.SetTrigger("Die");
 
-        DieServerRpc(!red);
+        DieServerRpc(red);
     }
 
     [ServerRpc (RequireOwnership = false)]

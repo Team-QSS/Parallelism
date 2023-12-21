@@ -65,9 +65,14 @@ public class GameManager : NetworkBehaviour
 
     private void Update()
     {
+        if (Input.GetKeyDown(KeyCode.J))
+        {
+            Debug.Log(red);
+        }
+        
         if (playerState)
         {
-            hpBar.value = playerState.currentHp;
+            hpBar.value = playerState.currentHp / playerState.maxHp;
         }
         else
         {
@@ -79,7 +84,7 @@ public class GameManager : NetworkBehaviour
     {
         var canvas = FindObjectOfType<Title>().GetComponent<Canvas>();
         if (canvas.enabled) return;
-        if (winRed && red)
+        if ((winRed && red) || (!winRed && !red))
         {
             canvas.transform.Find("Dead").GetComponent<TextMeshProUGUI>().text = "You Win!";
             canvas.enabled                                                     = true;

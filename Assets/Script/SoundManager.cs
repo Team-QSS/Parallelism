@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -93,6 +95,18 @@ public class SoundManager : MonoBehaviour
     }
 
     public void PlayOneShot(SoundEffect sfx)
+    {
+        PlayOneShotServerRPC(sfx);
+    }
+    
+    [ServerRpc (RequireOwnership = false)]
+    private void PlayOneShotServerRPC(SoundEffect sfx)
+    {
+        PlayOneShotClientRPC(sfx);
+    }
+    
+    [ClientRpc]
+    private void PlayOneShotClientRPC(SoundEffect sfx)
     {
         audioSource.PlayOneShot(sfxDic[sfx], .8f);
         Debug.Log("Play");

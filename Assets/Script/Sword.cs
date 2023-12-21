@@ -46,6 +46,9 @@ public class Sword : NetworkBehaviour
 
     private                  Coroutine throwCoroutine;
 
+    private float attackDelay = .5f;
+    private float timer;
+
     [SerializeField] private GameObject testAnchor;
     public Transform  camTr;
 
@@ -270,7 +273,7 @@ public class Sword : NetworkBehaviour
             anim.SetBool(ThrowBool, false);
             StartCoroutine(Utill.Execute(.1f, () => isThrow = false));
         }
-
+        
         if (attacker.red)
         {
             if (!other.CompareTag("MoverPlayerBlue")) return;
@@ -284,10 +287,28 @@ public class Sword : NetworkBehaviour
         var hit = other.GetComponentInChildren<IHit>();
         if (hit != null)
         {
+            if (timer + attackDelay > Time.time) return;
+            timer = Time.time;
             // Debug.Log("Hit Target");
             SoundManager.Instance.PlayOneShot(SoundEffect.SwordHit);
             //공격자
             hit.Hit(damage);
         }
+        
+        HitServerRPC(Vector3.Lerp(transform.position, other.transform.position, .5f));
+    }
+
+    [ServerRpc (RequireOwnership = false)]
+    private void HitServerRPC(Vector3 position)
+    {
+        HitClientRPC(position);
+    }
+    
+    [ClientRpc]
+    private void HitClientRPC(Vector3 position)
+    {
+        var vfx = Instantiate(Resources.Load<ParticleSystem>("Blood"), position, Quaternion.identity);
+        vfx.Play();
+        Destroy(vfx, 2f);
     }
 }
