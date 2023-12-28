@@ -34,7 +34,7 @@ public class Sword : NetworkBehaviour
     private                 int  index;
     private                 int  length;
 
-    private                 float damage       = 40;
+    private                 float damage       = 20;
 
     private                 bool  attackTrigger;
 
