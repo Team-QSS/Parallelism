@@ -200,4 +200,11 @@ public class NGOController : NetworkBehaviour
     {
         Debug.Log("disconnect " + clientid);
     }
+
+    public async void ToTitle()
+    {
+        await _networkController.KickPlayer();
+        NetworkManager.Singleton.Shutdown();
+        SceneManager.LoadScene("Title");
+    }
 }

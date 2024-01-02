@@ -10,6 +10,7 @@ using UnityEngine;
 using Unity.Services.Lobbies.Models;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
+using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
 
 public class NetworkController : MonoBehaviour
@@ -713,6 +714,12 @@ public class NetworkController : MonoBehaviour
     {
         m_LocalUser.UserStatus.Value = m_LocalUser.UserStatus.Value is PlayerStatus.Lobby ? PlayerStatus.Ready : PlayerStatus.Lobby;
         await UpdatePlayerDataAsync(LobbyConverters.LocalToRemoteUserData(m_LocalUser));
+    }
+
+    public async void BtnKick()
+    {
+        await KickPlayer();
+        SceneManager.LoadScene("Title");
     }
     
     [Command]
