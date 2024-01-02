@@ -28,4 +28,9 @@ public class Title : MonoBehaviour
     {
         _ngoController.ToTitle();
     }
+
+    public void Restart()
+    {
+        _ngoController.Restart();
+    }
 }

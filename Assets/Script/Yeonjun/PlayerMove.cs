@@ -31,6 +31,7 @@ public class PlayerMove : NetworkBehaviour
 
     private void Start()
     {
+        Debug.Log("start");
         camTr     = Camera.main.transform;
         var movePoint = new Vector3(transform.position.x, 5f, transform.position.z - 6);
         camTr.position = movePoint;

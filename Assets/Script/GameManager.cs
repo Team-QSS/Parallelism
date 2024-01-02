@@ -33,7 +33,7 @@ public class GameManager : NetworkBehaviour
             {
                 red = mov.red;
             }
-            
+
             playerState =
                 red
                     ? GameObject.FindGameObjectWithTag("MoverPlayerRed").GetComponent<PlayerState>()
@@ -42,6 +42,10 @@ public class GameManager : NetworkBehaviour
         catch (NullReferenceException)
         {
             // ignored
+        }
+        catch (MissingReferenceException)
+        {
+            //ignored
         }
     }
     

@@ -29,7 +29,7 @@ public class Attacker : NetworkBehaviour
             for (var i = 0; i < swordCount; i++)
             {
                 var sword = Instantiate(swordPrefab,Vector3.zero,quaternion.identity);
-                sword.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId);
+                sword.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
             }
         }
 
