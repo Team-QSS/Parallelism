@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
-using UnityEngine;
 
 [Flags] // Some UI elements will want to specify multiple states in which to be active, so this is Flags.
 public enum LobbyState
@@ -85,7 +84,7 @@ public class LocalLobby
 
     private void OnHostChanged(string newHostId)
     {
-        Debug.Log("host change");
+        //Debug.Log("host change");
         foreach(var player in LocalPlayers)
         {
             player.IsHost.Value = player.ID.Value == newHostId;
@@ -97,7 +96,7 @@ public class LocalLobby
         LocalPlayers.Insert(index, user);
         user.UserStatus.onChanged += OnUserChangedStatus;
         onUserJoined?.Invoke(user);
-        Debug.Log($"Added User: {user.DisplayName.Value} - {user.ID.Value} to slot {index + 1}/{PlayerCount}");
+        //Debug.Log($"Added User: {user.DisplayName.Value} - {user.ID.Value} to slot {index + 1}/{PlayerCount}");
     }
 
     public void RemovePlayer(int playerIndex)

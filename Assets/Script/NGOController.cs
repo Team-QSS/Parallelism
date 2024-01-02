@@ -25,6 +25,7 @@ public class NGOController : NetworkBehaviour
     
     [Header("controller")]
     [SerializeField] private NetworkController _networkController;
+    [SerializeField] private NetworkManager _networkManager;
     private Dictionary<ulong, Team> clientTeams = new();
     
     private Team Team;
@@ -206,5 +207,8 @@ public class NGOController : NetworkBehaviour
         await _networkController.KickPlayer();
         NetworkManager.Singleton.Shutdown();
         SceneManager.LoadScene("Title");
+        Destroy(_networkController.gameObject);
+        Destroy(_networkManager.gameObject);
+        Destroy(gameObject);
     }
 }

@@ -445,10 +445,12 @@ public class NetworkController : MonoBehaviour
         var cnt = await ListLobbies();
         if (cnt > 0)
         {
+            Debug.Log("join");
             QuickJoinLobby();
         }
         else
         {
+            Debug.Log("create");
             CreateLobby();
         }
     }
@@ -623,6 +625,7 @@ public class NetworkController : MonoBehaviour
 
             m_CurrentLobby = null;
             m_LocalLobby = null;
+            m_LocalUser = null;
         }
         catch (LobbyServiceException e)
         {
