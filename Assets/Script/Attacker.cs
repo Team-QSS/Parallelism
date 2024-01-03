@@ -104,6 +104,29 @@ public class Attacker : NetworkBehaviour
         SelectInput();
     }
 
+    public void Setup()
+    {
+        if(!IsOwner) return;
+        SetupServerRPC();
+    }
+    
+    [ServerRpc]
+    public void SetupServerRPC()
+    {
+        SetupClientRPC();
+    }
+    
+    [ClientRpc]
+    public void SetupClientRPC()
+    {
+        foreach(var sword in Swords)
+        {
+            sword.SetStuck(true);
+        }
+
+        GameManager.Instance.Restart();
+    }
+    
     //Sword 선택 입력
     private void SelectInput()
     {

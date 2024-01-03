@@ -49,6 +49,25 @@ public class PlayerState : NetworkBehaviour, IHit
         if(currentHp <= 0 && !isDie) Die(gameObject.CompareTag("MoverPlayerBlue"));
     }
 
+    public void Setup()
+    {
+        SetupServerRPC();
+    }
+
+    [ServerRpc]
+    public void SetupServerRPC()
+    {
+        SetupClientRPC();
+    }
+
+    [ClientRpc]
+    public void SetupClientRPC()
+    {
+        currentHp = maxHp;
+        isDie     = false;
+    }
+
+
     //죽는 함수
     private void Die(bool red)
     {

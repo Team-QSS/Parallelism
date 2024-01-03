@@ -96,7 +96,7 @@ public class Sword : NetworkBehaviour
     }
 
     //Attacker에 붙이기
-    private void SetStuck(bool stuck)
+    public void SetStuck(bool stuck)
     {
         IsStuck = stuck;
         attacker.SetInnerSword();

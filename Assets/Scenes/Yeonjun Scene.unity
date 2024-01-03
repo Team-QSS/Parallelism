@@ -3879,7 +3879,7 @@ GameObject:
   - component: {fileID: 505298205}
   - component: {fileID: 505298204}
   m_Layer: 5
-  m_Name: ExitButton
+  m_Name: Battle Again
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3902,7 +3902,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -50}
+  m_AnchoredPosition: {x: 0, y: -100}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &505298204
@@ -3951,7 +3951,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1664451248}
         m_TargetAssemblyTypeName: Title, Assembly-CSharp
-        m_MethodName: Exit
+        m_MethodName: BattleAgein
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -4056,7 +4056,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uD1F4\uC7A5"
+  m_text: "\uB2E4\uC2DC \uC804\uD22C"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: a4728e1ea37d5154b95ed153c99739c3, type: 2}
   m_sharedMaterial: {fileID: -1364852215332917226, guid: a4728e1ea37d5154b95ed153c99739c3,

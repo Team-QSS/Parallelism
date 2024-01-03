@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
@@ -65,9 +66,9 @@ public class GameManager : NetworkBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.J))
+        if (Input.GetKeyDown(KeyCode.Alpha0))
         {
-            Debug.Log(red);
+            FindObjectOfType<Title>().BattleAgein();
         }
         
         if (playerState)
@@ -99,5 +100,17 @@ public class GameManager : NetworkBehaviour
         Cursor.visible   = true;
 
         isEnd = true;
+    }
+
+    public void Restart()
+    {
+        isEnd                                                    = false;
+        FindObjectOfType<Title>().GetComponent<Canvas>().enabled = false;
+        var movers = FindObjectsOfType<PlayerMove>();
+        
+        foreach (var mover in movers)
+        {
+            mover.ReSetup();
+        }
     }
 }
