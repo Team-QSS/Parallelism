@@ -27,7 +27,8 @@ public class PlayerMove : NetworkBehaviour
 
     private Transform camTr;
 
-    public bool red;
+    public                  bool red;
+    private static readonly int  ReStart = Animator.StringToHash("ReStart");
 
     private void Start()
     {
@@ -57,9 +58,35 @@ public class PlayerMove : NetworkBehaviour
         
         var movePoint = new Vector3(transform.position.x, 5f, transform.position.z - 6);
         camTr.position = Vector3.Lerp(camTr.position, movePoint, 3f * Time.fixedDeltaTime);
-        
-        
     }
+
+    public void ReSetup()
+    {
+        if (!IsOwner) return;
+        animator.Animator.SetTrigger(ReStart);
+        transform.position =
+            GameManager.Instance.red ? GameObject.Find("SpawnPoint1").transform.position : GameObject.Find("SpawnPoint2").transform.position;
+        GetComponent<PlayerState>().Setup();
+    }
+    
+    public void Setup()
+    {
+        if(!IsOwner) return;
+        SetupServerRPC();
+    }
+    
+    [ServerRpc]
+    public void SetupServerRPC()
+    {
+        SetupClientRPC();
+    }
+    
+    [ClientRpc]
+    public void SetupClientRPC()
+    {
+        GameManager.Instance.Restart();
+    }
+
 
     private void FixedUpdate()
     {

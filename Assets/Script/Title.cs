@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -24,13 +25,18 @@ public class Title : MonoBehaviour
         Application.Quit();
     }
 
-    public void Totitle()
+    public void BattleAgein()
     {
-        _ngoController.ToTitle();
-    }
+        var movers = FindObjectsOfType<PlayerMove>();
+        var attackers = FindObjectsOfType<Attacker>();
+        foreach (var mover in movers)
+        {
+            mover.Setup();
+        }
 
-    public void Restart()
-    {
-        _ngoController.Restart();
+        foreach (var attacker in attackers)
+        {
+            attacker.Setup();
+        }
     }
 }
