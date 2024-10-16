@@ -6,10 +6,10 @@ using UnityEngine.UI;
 
 public class Delay : MonoBehaviour
 {
-    public async void ClickDelay()
-    {
-        GetComponent<Button>().interactable = false;
-        await Task.Delay(3000);
-        GetComponent<Button>().interactable = true;
-    }
+    // public async void ClickDelay()
+    // {
+    //     GetComponent<Button>().interactable = false;
+    //     await Task.Delay(3000);
+    //     GetComponent<Button>().interactable = true;
+    // }
 }
